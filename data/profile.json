@@ -1,0 +1,21 @@
+{
+  "username": "priyansh10ff",
+  "name": "Priyansh Dugar",
+  "tagline": "Building things, breaking things, and learning how they work.",
+  "level": 1,
+  "xp": 0,
+  "links": {
+    "x": "https://x.com/_Priyansh_10",
+    "linkedin": "https://www.linkedin.com/in/priyansh-dugar-709333363",
+    "leetcode": "https://leetcode.com/u/_priyansh_10/",
+    "codeforces": "https://codeforces.com/profile/Priyansh_10"
+  },
+  "featured": [
+    "git-profile-switcher",
+    "Trex10",
+    "monkey-moving",
+    "Supply-Mission-2",
+    "Supply-Mission-1-",
+    "Newton-s-Cradle"
+  ]
+}
