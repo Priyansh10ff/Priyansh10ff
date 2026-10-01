@@ -6,6 +6,40 @@
 
 **Building things. Breaking things. Learning how they work.**
 
+<!--
+ASCII PORTRAIT AREA
+Replace the blank space below with your own ASCII image.
+Keep it inside the code block so GitHub preserves the spacing.
+-->
+
+```text
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```
+
 [ ⚔ QUESTS ](https://github.com/priyansh10ff?tab=repositories) · [ 🧪 LAB ](https://github.com/priyansh10ff?tab=repositories) · [ 🏆 ACHIEVEMENTS ](https://github.com/priyansh10ff?tab=achievements) · [ 🌐 ENTER WORLD ](https://priyansh10ff.github.io/)
 
 [![3D CORE](https://img.shields.io/badge/3D_CORE-ONLINE-8957E5?style=for-the-badge&labelColor=0D1117)](https://priyansh10ff.github.io/)
