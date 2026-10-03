@@ -1,0 +1,38 @@
+{
+  "github_user": "Priyansh10ff",
+  "other_github_users": [],
+  "chess_user": "CHANGE_ME",
+  "name": "Priyansh",
+  "role": "full-stack ai developer",
+  "email": "CHANGE_ME@example.com",
+  "linkedin": "https://www.linkedin.com/in/CHANGE_ME/",
+  "about": [
+    ["who", "Student at Scaler School of Technology, Bengaluru"],
+    ["focus", "Full-stack AI products and startups"],
+    ["building", "Patchwork, a GitHub App that opens AI-patched PRs when an API breaks"],
+    ["stack", "Next.js, Supabase, Tailwind, Claude API"]
+  ],
+  "stack": {
+    "Languages": ["Python", "JavaScript", "SQL", "Bash", "PowerShell"],
+    "Frontend": ["Next.js", "React", "Tailwind CSS"],
+    "Backend and data": ["Node.js", "Express", "MongoDB", "Supabase", "Firebase"],
+    "AI and ML": ["Claude API", "OpenAI API", "PyTorch", "OpenCV", "LLaMA", "MCP"],
+    "Tools": ["Git", "GitHub Actions", "Octokit", "Cursor"]
+  },
+  "private_repos": {
+    "owner/private-repo": { "name": "Display name", "url": "https://example.com" }
+  },
+  "extra_oss": [],
+  "projects": [
+    { "name": "Patchwork", "repo": "", "url": "", "status": "building", "tags": ["Next.js", "Supabase", "Octokit", "Claude API"], "desc": "GitHub App that detects breaking changes in API changelogs and opens PRs with AI-generated patches.", "long": "Closed source for now. Reads third-party API changelogs, finds breaking changes that affect a repo, and opens a pull request with a generated patch for review." },
+    { "name": "Interview Arena", "repo": "", "url": "", "status": "", "tags": ["React", "Firebase"], "desc": "Terminal-style AI code interview trainer.", "long": "Interview practice with a terminal look, built with React and Firebase." },
+    { "name": "MirrorMind", "repo": "", "url": "", "status": "", "tags": ["Claude API", "OpenAI embeddings", "Supabase"], "desc": "AI digital twin built from Twitter and Reddit history.", "long": "Builds a conversational twin from a person's Twitter and Reddit history using embeddings and the Claude API." },
+    { "name": "Jarvis", "repo": "", "url": "", "status": "", "tags": ["LLaMA", "Vision"], "desc": "Voice-activated agent loop with vision-based screen control.", "long": "Runs locally on a LLaMA model. Listens for voice commands and controls the screen using vision." },
+    { "name": "Prompt Injection Defender", "repo": "", "url": "", "status": "finalist", "tags": ["PyTorch"], "desc": "Meta PyTorch hackathon finalist, top ~800 of 31,000+ teams.", "long": "Built for the Meta PyTorch hackathon." }
+  ],
+  "journey": [
+    { "year": "2021", "text": "Started with 2D games" },
+    { "year": "2025", "text": "Interned at Build4U, attended hackathons" },
+    { "year": "2026", "text": "Working on personal open source projects" }
+  ]
+}
