@@ -51,6 +51,15 @@ const cal = MOCK ? { weeks: mockWeeks() } : gq?.data?.user?.contributionsCollect
 const weeks = cal?.weeks ?? [];
 const days = weeks.flatMap((w) => w.contributionDays);
 const contribs = MOCK ? days.reduce((a, d) => a + d.contributionCount, 0) : cal?.totalContributions ?? 0;
+const PQ = `query($login:String!){user(login:$login){bio location company websiteUrl createdAt followers{totalCount} following{totalCount}
+ pinnedItems(first:6,types:[REPOSITORY]){nodes{...R}}
+ repositories(first:100,ownerAffiliation:OWNER,privacy:PUBLIC,isFork:false,orderBy:{field:PUSHED_AT,direction:DESC}){totalCount nodes{...R}}}}
+ fragment R on Repository{nameWithOwner name description url homepageUrl stargazerCount pushedAt createdAt isArchived primaryLanguage{name} repositoryTopics(first:8){nodes{topic{name}}} languages(first:8,orderBy:{field:SIZE,direction:DESC}){edges{size node{name}}}}`;
+const gp = TOKEN && !MOCK ? await j('https://api.github.com/graphql', { method: 'POST', body: JSON.stringify({ query: PQ, variables: { login: USER } }) }) : null;
+const mk = (n, d, lang, tp, st) => ({ nameWithOwner: `${USER}/${n}`, name: n, description: d, url: '', homepageUrl: '', stargazerCount: st, pushedAt: '2026-09-20T00:00:00Z', createdAt: '2022-03-01T00:00:00Z', isArchived: false, primaryLanguage: { name: lang }, repositoryTopics: { nodes: tp.map((t) => ({ topic: { name: t } })) }, languages: { edges: [{ size: 9000, node: { name: lang } }, { size: 3000, node: { name: 'CSS' } }] } });
+const mockUser = { bio: 'Student building AI products', location: 'Bengaluru, India', company: null, createdAt: '2021-06-01T00:00:00Z', followers: { totalCount: 9 }, following: { totalCount: 21 }, pinnedItems: { nodes: [mk('mirrormind', 'AI digital twin from social history', 'TypeScript', ['nextjs', 'supabase'], 3), mk('f1hub', 'F1 dashboard with a race predictor', 'TypeScript', ['nextjs', 'f1'], 5)] }, repositories: { totalCount: 14, nodes: [mk('mirrormind', 'AI digital twin', 'TypeScript', ['nextjs', 'supabase'], 3), mk('jarvis', 'Voice agent', 'Python', ['llm', 'agents'], 2), mk('f1hub', 'F1 dashboard', 'TypeScript', ['nextjs', 'f1'], 5)] } };
+const pu = MOCK ? mockUser : gp?.data?.user;
+if (!MOCK && process.env.CI && (!gq?.data?.user || !pu)) { console.error('GitHub GraphQL returned no usable data:', JSON.stringify(gq?.errors ?? gp?.errors ?? 'no response')); process.exit(1); }
 const me = await j(`https://api.github.com/users/${USER}`);
 const repos = (await j(`https://api.github.com/users/${USER}/repos?per_page=100&type=owner`)) ?? [];
 
@@ -95,7 +104,31 @@ const status = ago === null ? ['UNKNOWN', C.mute] : ago <= 2 ? ['ACTIVE', C.ok] 
 const agoText = ago === null ? 'no data' : ago === 0 ? 'today' : ago === 1 ? 'yesterday' : `${ago} days ago`;
 const xp = contribs, level = Math.floor(Math.sqrt(xp / 12)) + 1, xpPrev = (level - 1) ** 2 * 12, xpNext = level ** 2 * 12;
 const rank = [[1, 'Initiate'], [3, 'Tinkerer'], [5, 'Builder'], [8, 'Shipper'], [12, 'Maintainer'], [17, 'Architect']].filter(([l]) => level >= l).pop()[1];
-const nRepos = me?.public_repos ?? (MOCK ? 14 : 0), nFollowers = me?.followers ?? (MOCK ? 9 : 0), nFollowing = me?.following ?? (MOCK ? 21 : 0);
+const nRepos = pu?.repositories.totalCount ?? me?.public_repos ?? 0, nFollowers = pu?.followers.totalCount ?? me?.followers ?? 0, nFollowing = pu?.following.totalCount ?? me?.following ?? 0;
+
+// ---------- dynamic content from GitHub ----------
+const R = pu?.repositories.nodes ?? [];
+const langBytes = {}; for (const r of R) for (const e of r.languages.edges) langBytes[e.node.name] = (langBytes[e.node.name] || 0) + e.size;
+const topicCnt = {}; for (const r of R) for (const t of r.repositoryTopics.nodes) topicCnt[t.topic.name] = (topicCnt[t.topic.name] || 0) + 1;
+const topLangs = Object.entries(langBytes).sort((a, b) => b[1] - a[1]).map(([n]) => n);
+const topTopics = Object.entries(topicCnt).sort((a, b) => b[1] - a[1]).map(([n]) => n).slice(0, 18);
+const stack = structuredClone(cfg.stack);
+if (topLangs.length) stack.Languages = [...new Set([...(stack.Languages || []), ...topLangs.slice(0, 8)])];
+if (topTopics.length) stack['From repo topics'] = topTopics;
+const about = [];
+if (pu?.bio) about.push(['who', pu.bio]); if (pu?.location) about.push(['where', pu.location]); if (pu?.company) about.push(['at', pu.company]);
+if (R[0]) about.push(['latest', `${R[0].name}${R[0].description ? ': ' + R[0].description : ''}`]);
+if (pu?.createdAt) about.push(['github', `since ${pu.createdAt.slice(0, 4)}, ${nRepos} public repos`]);
+about.push(...(cfg.about_extra || []));
+const toProj = (r) => ({ name: r.name, repo: r.nameWithOwner, url: r.homepageUrl || '', status: r.isArchived ? 'archived' : '', tags: [r.primaryLanguage?.name, ...r.repositoryTopics.nodes.map((t) => t.topic.name)].filter(Boolean).slice(0, 6), desc: r.description || r.name, long: [r.description, `${r.stargazerCount} stars`, `updated ${r.pushedAt.slice(0, 10)}`].filter(Boolean).join('. ') });
+const pinned = (pu?.pinnedItems.nodes ?? []).filter(Boolean).map(toProj);
+const pool = pinned.length ? pinned : R.slice(0, 5).map(toProj);
+const manual = cfg.projects.filter((p) => p.name);
+const projs = [...manual, ...pool.filter((p) => !manual.some((m) => m.repo && m.repo === p.repo))].slice(0, 5);
+const journeyAll = [...cfg.journey];
+if (pu?.createdAt) journeyAll.push({ year: pu.createdAt.slice(0, 4), text: 'Joined GitHub' });
+if (R.length) { const f = [...R].sort((a, b) => a.createdAt.localeCompare(b.createdAt))[0]; journeyAll.push({ year: f.createdAt.slice(0, 4), text: `First public repo: ${f.name}` }); }
+journeyAll.sort((a, b) => String(a.year).localeCompare(String(b.year)));
 
 // ---------- assets ----------
 function nameSvg() {
@@ -125,7 +158,7 @@ async function asciiSvg() {
 }
 
 function aboutSvg() {
-  const rows = cfg.about, H = 62 + rows.length * 30, kw = Math.max(...rows.map((r) => r[0].length)) * 8.4 + 24;
+  const rows = about, H = 62 + rows.length * 30, kw = Math.max(...rows.map((r) => r[0].length)) * 8.4 + 24;
   const t = rows.map(([k, v], i) => `<text x="28" y="${70 + i * 30}" font-size="14" fill="${C.ok}">${esc(k)}</text><text x="${28 + kw}" y="${70 + i * 30}" font-size="14" fill="${C.text}">${esc(cut(v, Math.floor((900 - 56 - kw) / 8.4)))}</text>`).join('');
   return svg(900, H, `${panel(900, H)}<text x="28" y="32" font-size="12" fill="${C.mute}">$ cat about.md</text>${t}`);
 }
@@ -135,7 +168,7 @@ function statsSvg() {
   const tiles = [['PUBLIC REPOS', nRepos, 'owned'], ['CONTRIBUTIONS', fmt(contribs), 'last 12 months'], ['MERGED PRS', totals.merged, `${cards.length} projects`], ['FOLLOWERS', nFollowers, `${nFollowing} following`]];
   const tl = tiles.map(([l, v, h], i) => { const x = 20 + i * 220; return `<g transform="translate(${x} 62)"><rect width="200" height="112" rx="8" fill="${C.bg}" stroke="${C.line}"/><text x="14" y="26" font-size="10" fill="${C.mute}" letter-spacing="1">${l}</text><text x="14" y="70" font-size="34" font-weight="700" fill="${C.text}">${v}</text><text x="14" y="94" font-size="10" fill="${C.mute}">${h}</text></g>`; }).join('');
   return svg(W, H, `${panel(W, H)}${p.s}<text x="${20 + p.w + 14}" y="32" font-size="12" fill="${C.mute}">last contribution ${agoText}</text>
-<text x="880" y="32" font-size="12" fill="${C.text}" text-anchor="end">streak ${cur}d  ·  best ${best}d</text>${tl}`);
+<text x="880" y="32" font-size="12" fill="${C.text}" text-anchor="end">streak ${cur}d  ·  best ${best}d</text>${tl}<text x="880" y="188" font-size="9" fill="${C.mute}" text-anchor="end">synced ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC</text>`);
 }
 
 function heatSvg() {
@@ -200,10 +233,10 @@ function chipsSvg(title, items) {
 
 function langsSvg() {
   const cnt = {}; for (const r of repos) if (r.language && !r.fork) cnt[r.language] = (cnt[r.language] || 0) + 1;
-  const arr = Object.entries(cnt).sort((a, b) => b[1] - a[1]).slice(0, 7); if (!arr.length) return null;
+  const cnt2 = Object.keys(langBytes).length ? langBytes : cnt; const arr = Object.entries(cnt2).sort((a, b) => b[1] - a[1]).slice(0, 7); if (!arr.length) return null;
   const tot = arr.reduce((a, [, n]) => a + n, 0); let x = 20, bar = '', lg = '', lx = 20;
   arr.forEach(([l, n], i) => { const w = (n / tot) * 860; bar += `<rect x="${x.toFixed(1)}" y="46" width="${Math.max(2, w - 2).toFixed(1)}" height="12" rx="3" fill="${PAL[i]}"/>`; x += w; const t = `${l} ${Math.round((n / tot) * 100)}%`; lg += `<circle cx="${lx + 4}" cy="84" r="4" fill="${PAL[i]}"/><text x="${lx + 14}" y="88" font-size="11" fill="${C.text}">${esc(t)}</text>`; lx += tw(t, 11) + 34; });
-  return svg(900, 112, `${panel(900, 112)}<text x="20" y="28" font-size="11" fill="${C.mute}" letter-spacing="2">DETECTED FROM PUBLIC REPOS</text>${bar}${lg}`);
+  return svg(900, 112, `${panel(900, 112)}<text x="20" y="28" font-size="11" fill="${C.mute}" letter-spacing="2">LANGUAGES ACROSS PUBLIC REPOS</text>${bar}${lg}`);
 }
 
 function ossSummary() {
@@ -222,11 +255,11 @@ ${bars}<text x="18" y="106" font-size="10" fill="${C.mute}">${c.open} open · ${
 
 function projRow(p, i) {
   const W = 900, H = 78, st = p.status ? pill(0, 0, p.status.toUpperCase(), p.status === 'building' ? C.warn : C.ok, true) : null;
-  return svg(W, H, `${panel(W, H)}<text x="26" y="46" font-size="22" fill="${C.dim}" font-weight="700">${String(i + 1).padStart(2, '0')}</text><text x="80" y="34" font-size="18" font-weight="700" fill="${C.text}">${esc(p.name)}</text><text x="80" y="58" font-size="12" fill="${C.mute}">${esc(cut(p.desc, 92))}</text>
+  return svg(W, H, `${panel(W, H)}<text x="26" y="46" font-size="22" fill="${C.dim}" font-weight="700">${String(i + 1).padStart(2, '0')}</text><text x="80" y="34" font-size="18" font-weight="700" fill="${C.text}">${esc(p.name)}</text><text x="80" y="58" font-size="12" fill="${C.mute}">${esc(cut(p.desc || p.name, 92))}</text>
 ${st ? `<g transform="translate(${840 - st.w} 29)">${st.s}</g>` : ''}<text x="872" y="45" font-size="14" fill="${C.mute}" text-anchor="end">▸</text>`);
 }
 function projDetail(p) {
-  const W = 900, lines = wrap(p.long || p.desc, 100); let x = 26; const y0 = 28 + lines.length * 22 + 10;
+  const W = 900, lines = wrap(p.long || p.desc || p.name, 100); let x = 26; const y0 = 28 + lines.length * 22 + 10;
   const chips = (p.tags || []).map((t) => { const w = Math.round(tw(t, 11) + 22); const s = `<g transform="translate(${x} ${y0})"><rect width="${w}" height="24" rx="6" fill="${C.bg}" stroke="${C.line}"/><text x="11" y="16" font-size="11" fill="${C.text}">${esc(t)}</text></g>`; x += w + 8; return s; }).join('');
   const link = p.repo ? `github.com/${p.repo}` : p.url ? p.url.replace(/^https?:\/\//, '') : 'closed source';
   const H = y0 + 24 + 44;
@@ -234,7 +267,7 @@ function projDetail(p) {
 }
 
 function journeySvg() {
-  const J = cfg.journey, H = 40 + J.length * 66, W = 900;
+  const J = journeyAll, H = 40 + J.length * 66, W = 900;
   const t = J.map((e, i) => { const y = 52 + i * 66, last = i === J.length - 1; return `<circle cx="60" cy="${y}" r="6" fill="${last ? C.ok : C.panel}" stroke="${last ? C.ok : C.mute}" stroke-width="2">${last ? `<animate attributeName="r" values="6;9;6" dur="1.8s" repeatCount="indefinite"/>` : ''}</circle><text x="96" y="${y + 6}" font-size="20" font-weight="700" fill="${last ? C.ok : C.text}">${esc(e.year)}</text><text x="190" y="${y + 5}" font-size="14" fill="${C.text}">${esc(e.text)}</text>`; }).join('');
   return svg(W, H, `${panel(W, H)}<line x1="60" y1="52" x2="60" y2="${52 + (J.length - 1) * 66}" stroke="${C.line}" stroke-width="2"/>${t}`);
 }
@@ -263,14 +296,14 @@ const hdr = (n, title, right) => svg(900, 52, `<rect x=".5" y=".5" width="899" h
 // ---------- write everything ----------
 write('name.svg', nameSvg()); write('ascii.svg', await asciiSvg()); write('about.svg', aboutSvg());
 write('stats.svg', statsSvg()); write('heatmap.svg', heatSvg()); write('ecg.svg', ecgSvg());
-const stackKeys = Object.keys(cfg.stack); stackKeys.forEach((k, i) => write(`stack-${i}.svg`, chipsSvg(k, cfg.stack[k])));
+const stackKeys = Object.keys(stack); stackKeys.forEach((k, i) => write(`stack-${i}.svg`, chipsSvg(k, stack[k])));
 const langs = langsSvg(); if (langs) write('langs.svg', langs);
 write('oss-summary.svg', ossSummary()); cards.forEach((c, i) => write(`oss-${i}.svg`, ossCard(c)));
-const projs = cfg.projects.slice(0, 5); projs.forEach((p, i) => { write(`proj-${i}.svg`, projRow(p, i)); write(`proj-${i}-d.svg`, projDetail(p)); });
+projs.forEach((p, i) => { write(`proj-${i}.svg`, projRow(p, i)); write(`proj-${i}-d.svg`, projDetail(p)); });
 write('journey.svg', journeySvg()); write('chess.svg', await chessSvg());
 write('contact-email.svg', contactTile('EMAIL', cfg.email)); write('contact-linkedin.svg', contactTile('LINKEDIN', cfg.linkedin.replace(/^https?:\/\/(www\.)?linkedin\.com\//, '').replace(/\/$/, ''))); write('contact-github.svg', contactTile('GITHUB', USER));
-const nTools = stackKeys.reduce((a, k) => a + cfg.stack[k].length, 0);
-const heads = { about: ['01', 'About', 'whoami'], activity: ['02', 'Activity', `lvl ${level} ${rank.toLowerCase()}`], stack: ['03', 'Tech stack', `${nTools} tools`], oss: ['04', 'Open source', `${totals.merged} merged`], projects: ['05', 'Projects', `${projs.length} selected`], journey: ['06', 'Journey', `${cfg.journey[0].year} to now`], chess: ['07', 'Chess', 'chess.com'], contact: ['08', 'Contact', ''] };
+const nTools = stackKeys.reduce((a, k) => a + stack[k].length, 0);
+const heads = { about: ['01', 'About', 'whoami'], activity: ['02', 'Activity', `lvl ${level} ${rank.toLowerCase()}`], stack: ['03', 'Tech stack', `${nTools} tools`], oss: ['04', 'Open source', `${totals.merged} merged`], projects: ['05', 'Projects', `${projs.length} selected`], journey: ['06', 'Journey', `${journeyAll[0].year} to now`], chess: ['07', 'Chess', 'chess.com'], contact: ['08', 'Contact', ''] };
 for (const [k, [n, t, r]] of Object.entries(heads)) write(`hdr-${k}.svg`, hdr(n, t, r));
 
 // version hash from content so README only changes when assets change
