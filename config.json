@@ -1,11 +1,10 @@
 {
   "github_user": "Priyansh10ff",
   "other_github_users": [],
-  "chess_user": "CHANGE_ME",
+  "chess_user": "priyanshh_10",
   "name": "Priyansh",
-  "role": "full-stack ai developer",
   "email": "CHANGE_ME@example.com",
-  "linkedin": "https://www.linkedin.com/in/CHANGE_ME/",
+  "linkedin": "https://www.linkedin.com/in/priyansh-dugar-709333363/",
   "stack": {
     "Languages": [
       "Python",
@@ -83,5 +82,10 @@
       "building",
       "Patchwork, a GitHub App that opens AI-patched PRs when an API breaks"
     ]
-  ]
+  ],
+  "x": "https://x.com/_Priyansh_10",
+  "school": "Scaler School of Technology",
+  "hero_lead": "Full-stack AI developer",
+  "hero_chip": "Patchwork",
+  "hero_sub": "Student in Bengaluru. Every number on this page is fetched from GitHub."
 }
