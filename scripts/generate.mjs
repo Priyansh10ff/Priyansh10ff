@@ -30,7 +30,10 @@ async function jg(url, opts = {}) { try { const r = await fetch(url, { headers, 
 async function j(url, opts = {}) { try { const r = await fetch(url, { headers: UA, ...opts }); return r.ok ? await r.json() : null; } catch { return null; } }
 const fontCss = (body) => Object.entries(FONTS).filter(([k]) => body.includes(`font-family="${k},`)).flatMap(([k, ws]) => ws.map(([w, f]) => { const p = path.join(root, 'fonts', f); return fs.existsSync(p) ? `@font-face{font-family:'${k}';font-weight:${w};src:url(data:font/woff2;base64,${fs.readFileSync(p).toString('base64')}) format('woff2')}` : ''; })).join('');
 const svg = (w, h, body, css = '') => `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><style>${fontCss(body)}${css}</style>${body}</svg>`;
-const write = (n, s) => fs.writeFileSync(path.join(root, 'assets', n), s);
+const OUT = process.env.GITHUB_ACTIONS ? root : path.join(root, 'preview'), OA = path.join(OUT, 'assets');
+fs.mkdirSync(OA, { recursive: true }); fs.mkdirSync(path.join(OUT, 'data'), { recursive: true });
+if (!process.env.GITHUB_ACTIONS) console.log('local run: writing to preview/ (your committed files are not touched)');
+const write = (n, s) => fs.writeFileSync(path.join(OA, n), s);
 
 
 const card = (w, h, fill = C.card, r = 18) => `<rect x=".5" y=".5" width="${w - 1}" height="${h - 1}" rx="${r}" fill="${fill}" stroke="${C.line}"/>`;
@@ -130,7 +133,7 @@ async function getLC() {
 }
 const cfNew = await getCF(), lcNew = await getLC();
 const cfData = cfNew ?? (cfg.codeforces_user ? cache.cf ?? null : null), lcData = lcNew ?? (cfg.leetcode_user ? cache.lc ?? null : null);
-if (!MOCK) fs.writeFileSync(cachePath, JSON.stringify({ cf: cfNew ?? cache.cf ?? null, lc: lcNew ?? cache.lc ?? null }));
+if (!MOCK) fs.writeFileSync(path.join(OUT, 'data', 'cache.json'), JSON.stringify({ cf: cfNew ?? cache.cf ?? null, lc: lcNew ?? cache.lc ?? null }));
 if (cfg.codeforces_user && !cfNew) console.log('codeforces fetch failed, using cached data'); if (cfg.leetcode_user && !lcNew) console.log('leetcode fetch failed, using cached data');
 
 // ---------- derived ----------
@@ -157,7 +160,7 @@ const norm = (x) => String(x).toLowerCase().replace(/[^a-z0-9]/g, '');
 const projs = (cfg.projects || []).slice(0, 6).map((p) => { const want = norm(p.match || p.name), r = p.repo ? R.find((x) => x.nameWithOwner.toLowerCase() === p.repo.toLowerCase()) : R.find((x) => norm(x.name).includes(want)); return { ...p, repo: p.closed ? '' : p.repo || r?.nameWithOwner || '', url: p.url || r?.homepageUrl || '', desc: p.desc || r?.description || p.name, tags: p.tags?.length ? p.tags : [r?.primaryLanguage?.name].filter(Boolean) }; });
 
 // ---------- assets ----------
-for (const f of fs.readdirSync(path.join(root, 'assets'))) if (f.endsWith('.svg')) fs.unlinkSync(path.join(root, 'assets', f));
+for (const f of fs.readdirSync(OA)) if (f.endsWith('.svg')) fs.unlinkSync(path.join(OA, f));
 const upper = (s) => String(s).toUpperCase();
 const arr = (x, y, z, col = C.text) => `<path d="M${x} ${y + z}L${x + z} ${y}M${x + z * 0.2} ${y}H${x + z}V${y + z * 0.8}" fill="none" stroke="${col}" stroke-width="1.6" stroke-linecap="round"/>`;
 const K = { bg: '#0b0b0d', rule: '#2a2a31', text: '#f2f1ec', mute: '#86868f', dim: '#4a4a52', purple: '#b44cff', green: '#27d067', yellow: '#f6d32d', red: '#ff4d4d' };
@@ -391,7 +394,7 @@ write('chess.svg', await chessSvg());
 const hasMail = cfg.email && !cfg.email.includes('CHANGE_ME'); const contacts = [...(hasMail ? [['Email', `mailto:${cfg.email}`]] : []), ['LinkedIn', cfg.linkedin], ['X', cfg.x], ['GitHub', `https://github.com/${USER}`]].filter(([, u]) => u);
 contacts.forEach(([l], i) => write(`contact-${i}.svg`, btn(l, i === 0)));
 
-const V = crypto.createHash('md5').update(fs.readdirSync(path.join(root, 'assets')).filter((f) => f.endsWith('.svg')).sort().map((f) => fs.readFileSync(path.join(root, 'assets', f), 'utf8')).join('')).digest('hex').slice(0, 8);
+const V = crypto.createHash('md5').update(fs.readdirSync(OA).filter((f) => f.endsWith('.svg')).sort().map((f) => fs.readFileSync(path.join(OA, f), 'utf8')).join('')).digest('hex').slice(0, 8);
 const im = (f, alt, w = '100%') => `<img src="assets/${f}?v=${V}" width="${w}" alt="${esc(alt)}">`, lk = (href, html) => (href ? `<a href="${href}">${html}</a>` : html);
 const pair = (a, fn) => { const o = []; for (let i = 0; i < a.length; i += 2) o.push(a.slice(i, i + 2).map((x, k) => fn(x, i + k)).join(' ')); return o.join('\n'); };
 const cw = contacts.length === 4 ? '23.4%' : '31.5%';
@@ -406,5 +409,5 @@ const readme = [
   im('hdr-chess.svg', 'Chess'), lk(`https://www.chess.com/member/${CHESS}`, im('chess.svg', 'Chess.com stats')),
   im('hdr-contact.svg', 'Contact'), contacts.map(([l, u], i) => lk(u, im(`contact-${i}.svg`, l, cw))).join(' '),
 ].join('\n');
-fs.writeFileSync(path.join(root, 'README.md'), readme);
+fs.writeFileSync(path.join(OUT, 'README.md'), readme);
 console.log('done', { contribs, status: status[0], cards: cards.length, merged: totals.merged, prs: prList.length, v: V });
