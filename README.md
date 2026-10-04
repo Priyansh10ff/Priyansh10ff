@@ -1,25 +1,23 @@
-<a href="https://github.com/Priyansh10ff"><img src="assets/hero.svg?v=41c1f073" width="100%" alt="Priyansh, Full-stack AI developer"></a>
-<img src="assets/ascii.svg?v=41c1f073" width="100%" alt="ASCII portrait">
-<img src="assets/hdr-about.svg?v=41c1f073" width="100%" alt="About">
-<img src="assets/about.svg?v=41c1f073" width="100%" alt="About me">
-<img src="assets/hdr-activity.svg?v=41c1f073" width="100%" alt="Activity">
-<img src="assets/stats.svg?v=41c1f073" width="100%" alt="GitHub stats">
-<a href="https://github.com/Priyansh10ff"><img src="assets/heatmap.svg?v=41c1f073" width="100%" alt="Contribution heatmap"></a>
-<a href="https://github.com/Priyansh10ff"><img src="assets/ecg.svg?v=41c1f073" width="100%" alt="Monthly contributions"></a>
-<img src="assets/hdr-stack.svg?v=41c1f073" width="100%" alt="Tech stack">
-<img src="assets/stack-0.svg?v=41c1f073" width="100%" alt="Languages">
-<img src="assets/stack-1.svg?v=41c1f073" width="100%" alt="Frontend">
-<img src="assets/stack-2.svg?v=41c1f073" width="100%" alt="Backend and data">
-<img src="assets/stack-3.svg?v=41c1f073" width="100%" alt="AI and ML">
-<img src="assets/stack-4.svg?v=41c1f073" width="100%" alt="Tools">
-<img src="assets/hdr-oss.svg?v=41c1f073" width="100%" alt="Open source">
-<a href="https://github.com/pulls?q=is%3Apr+author%3APriyansh10ff+is%3Amerged"><img src="assets/oss.svg?v=41c1f073" width="100%" alt="Pull requests as a commit graph"></a>
-<img src="assets/oss-0.svg?v=41c1f073" width="49%" alt="Private repositories, 4 merged">
-<img src="assets/hdr-projects.svg?v=41c1f073" width="100%" alt="Projects">
-<img src="assets/proj-0.svg?v=41c1f073" width="49%" alt="Patchwork">
-<img src="assets/hdr-journey.svg?v=41c1f073" width="100%" alt="Journey">
-<img src="assets/journey.svg?v=41c1f073" width="100%" alt="Journey">
-<img src="assets/hdr-chess.svg?v=41c1f073" width="100%" alt="Chess">
-<a href="https://www.chess.com/member/priyanshh_10"><img src="assets/chess.svg?v=41c1f073" width="100%" alt="Chess.com stats"></a>
-<img src="assets/hdr-contact.svg?v=41c1f073" width="100%" alt="Contact">
-<a href="https://www.linkedin.com/in/priyansh-dugar-709333363/"><img src="assets/contact-0.svg?v=41c1f073" width="31.5%" alt="LinkedIn"></a> <a href="https://x.com/_Priyansh_10"><img src="assets/contact-1.svg?v=41c1f073" width="31.5%" alt="X"></a> <a href="https://github.com/Priyansh10ff"><img src="assets/contact-2.svg?v=41c1f073" width="31.5%" alt="GitHub"></a>
+<a href="https://github.com/Priyansh10ff"><img src="assets/hero.svg?v=da1b736e" width="100%" alt="Priyansh, Full-stack AI developer"></a>
+<img src="assets/ascii.svg?v=da1b736e" width="100%" alt="ASCII portrait">
+<img src="assets/hdr-about.svg?v=da1b736e" width="100%" alt="About">
+<img src="assets/about.svg?v=da1b736e" width="100%" alt="About me">
+<img src="assets/hdr-activity.svg?v=da1b736e" width="100%" alt="Activity">
+<img src="assets/stats.svg?v=da1b736e" width="100%" alt="GitHub stats">
+<a href="https://github.com/Priyansh10ff"><img src="assets/heatmap.svg?v=da1b736e" width="100%" alt="Contribution heatmap"></a>
+<a href="https://github.com/Priyansh10ff"><img src="assets/ecg.svg?v=da1b736e" width="100%" alt="Monthly contributions"></a>
+<img src="assets/hdr-stack.svg?v=da1b736e" width="100%" alt="Stack">
+<img src="assets/stack-0.svg?v=da1b736e" width="100%" alt="Languages">
+<img src="assets/stack-1.svg?v=da1b736e" width="100%" alt="Frontend">
+<img src="assets/stack-2.svg?v=da1b736e" width="100%" alt="Backend and data">
+<img src="assets/stack-3.svg?v=da1b736e" width="100%" alt="AI and ML">
+<img src="assets/stack-4.svg?v=da1b736e" width="100%" alt="Tools">
+<img src="assets/hdr-oss.svg?v=da1b736e" width="100%" alt="Open source">
+<a href="https://github.com/pulls?q=is%3Apr+author%3APriyansh10ff+is%3Amerged"><img src="assets/oss.svg?v=da1b736e" width="100%" alt="Pull requests as a commit graph"></a>
+<img src="assets/oss-0.svg?v=da1b736e" width="49%" alt="Private repositories, 4 merged">
+<img src="assets/hdr-projects.svg?v=da1b736e" width="100%" alt="Projects">
+<img src="assets/proj-0.svg?v=da1b736e" width="49%" alt="Patchwork">
+<img src="assets/hdr-chess.svg?v=da1b736e" width="100%" alt="Chess">
+<a href="https://www.chess.com/member/priyanshh_10"><img src="assets/chess.svg?v=da1b736e" width="100%" alt="Chess.com stats"></a>
+<img src="assets/hdr-contact.svg?v=da1b736e" width="100%" alt="Contact">
+<a href="https://www.linkedin.com/in/priyansh-dugar-709333363/"><img src="assets/contact-0.svg?v=da1b736e" width="31.5%" alt="LinkedIn"></a> <a href="https://x.com/_Priyansh_10"><img src="assets/contact-1.svg?v=da1b736e" width="31.5%" alt="X"></a> <a href="https://github.com/Priyansh10ff"><img src="assets/contact-2.svg?v=da1b736e" width="31.5%" alt="GitHub"></a>

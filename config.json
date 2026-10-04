@@ -63,29 +63,25 @@
       "long": "Closed source for now. Reads third-party API changelogs, finds breaking changes that affect a repo, and opens a pull request with a generated patch for review."
     }
   ],
-  "journey": [
+  "x": "https://x.com/_Priyansh_10",
+  "hero_lead": "Full-stack AI developer",
+  "about_lines": [
     {
-      "year": "2021",
-      "text": "Started with 2D games"
+      "e": "🎓",
+      "t": "19, tech student, curious about most things"
     },
     {
-      "year": "2025",
-      "text": "Interned at Build4U, attended hackathons"
+      "e": "🛠️",
+      "t": "learning by building, mostly in public"
     },
     {
-      "year": "2026",
-      "text": "Working on personal open source projects"
+      "e": "🌀",
+      "t": "overthinker, working on it. kind about it too"
+    },
+    {
+      "e": "☕",
+      "t": "happy to help if you ask"
     }
   ],
-  "about_extra": [
-    [
-      "building",
-      "Patchwork, a GitHub App that opens AI-patched PRs when an API breaks"
-    ]
-  ],
-  "x": "https://x.com/_Priyansh_10",
-  "school": "Scaler School of Technology",
-  "hero_lead": "Full-stack AI developer",
-  "hero_chip": "Patchwork",
-  "hero_sub": "Student in Bengaluru. Every number on this page is fetched from GitHub."
+  "motto": "Be kind. Ask the dumb question. Ship the thing."
 }
