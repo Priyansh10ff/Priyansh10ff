@@ -57,7 +57,7 @@ const weeks = cal?.weeks ?? [], days = weeks.flatMap((w) => w.contributionDays);
 const contribs = MOCK ? days.reduce((a, d) => a + d.contributionCount, 0) : cal?.totalContributions ?? 0;
 const PQ = `query($login:String!){user(login:$login){bio location company createdAt followers{totalCount} following{totalCount}
  pinnedItems(first:6,types:[REPOSITORY]){nodes{...R}}
- repositories(first:100,ownerAffiliation:OWNER,privacy:PUBLIC,isFork:false,orderBy:{field:PUSHED_AT,direction:DESC}){totalCount nodes{...R}}}}
+ repositories(first:100,ownerAffiliations:[OWNER],privacy:PUBLIC,isFork:false,orderBy:{field:PUSHED_AT,direction:DESC}){totalCount nodes{...R}}}}
  fragment R on Repository{nameWithOwner name description url homepageUrl stargazerCount pushedAt createdAt isArchived primaryLanguage{name} repositoryTopics(first:8){nodes{topic{name}}} languages(first:8,orderBy:{field:SIZE,direction:DESC}){edges{size node{name}}}}`;
 const gp = TOKEN && !MOCK ? await j('https://api.github.com/graphql', { method: 'POST', body: JSON.stringify({ query: PQ, variables: { login: USER } }) }) : null;
 const mk = (n, d, lang, tp, st) => ({ nameWithOwner: `${USER}/${n}`, name: n, description: d, url: '', homepageUrl: '', stargazerCount: st, pushedAt: '2026-09-20T00:00:00Z', createdAt: '2022-03-01T00:00:00Z', isArchived: false, primaryLanguage: { name: lang }, repositoryTopics: { nodes: tp.map((x) => ({ topic: { name: x } })) }, languages: { edges: [{ size: 9000, node: { name: lang } }, { size: 3000, node: { name: 'CSS' } }] } });
