@@ -287,7 +287,7 @@ const sk = Object.keys(stack); sk.forEach((k, i) => write(`stack-${i}.svg`, stac
 write('oss.svg', ossSvg()); cards.forEach((c, i) => write(`oss-${i}.svg`, ossCard(c)));
 projs.forEach((p, i) => write(`proj-${i}.svg`, projCard(p, i, projs)));
 write('chess.svg', await chessSvg());
-const hasMail = cfg.email && !cfg.email.includes('CHANGE_ME'); const contacts = [...(hasMail ? [['Email', `mailto:${cfg.email}`]] : []), ['LinkedIn', cfg.linkedin], ['X', cfg.x], ['GitHub', `https://github.com/${USER}`]].filter(([, u]) => u);
+const hasMail = cfg.email && !cfg.email.includes('CHANGE_ME'); const contacts = [...(hasMail ? [['Email', `mailto:${cfg.email}`]] : []), ['LinkedIn', cfg.linkedin], ['X', cfg.x]].filter(([, u]) => u);
 contacts.forEach(([l], i) => write(`contact-${i}.svg`, btn(l, i === 0)));
 
 const V = crypto.createHash('md5').update(fs.readdirSync(path.join(root, 'assets')).filter((f) => f.endsWith('.svg')).sort().map((f) => fs.readFileSync(path.join(root, 'assets', f), 'utf8')).join('')).digest('hex').slice(0, 8);
