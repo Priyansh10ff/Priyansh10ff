@@ -3,7 +3,7 @@
   "other_github_users": [],
   "chess_user": "priyanshh_10",
   "name": "Priyansh",
-  "email": "priyansh10work@gmail.com",
+  "email": "CHANGE_ME@example.com",
   "linkedin": "https://www.linkedin.com/in/priyansh-dugar-709333363/",
   "stack": {
     "Languages": [
@@ -49,18 +49,31 @@
   "extra_oss": [],
   "projects": [
     {
+      "name": "git-profile-switcher",
+      "match": "git-profile-switcher",
+      "desc": "CLI that switches Git identity and SSH key per command across multiple GitHub accounts. PowerShell, Bash, Nushell."
+    },
+    {
+      "name": "Argument Gym",
+      "repo": "Priyansh10ff/Argument-Gym",
+      "url": "https://argument-gym.vercel.app",
+      "desc": "AI debate training app with ELO ratings, adaptive opponents and live human vs human debates."
+    },
+    {
       "name": "Patchwork",
-      "repo": "",
-      "url": "",
+      "closed": true,
       "status": "building",
-      "tags": [
-        "Next.js",
-        "Supabase",
-        "Octokit",
-        "Claude API"
-      ],
-      "desc": "GitHub App that detects breaking changes in API changelogs and opens PRs with AI-generated patches.",
-      "long": "Closed source for now. Reads third-party API changelogs, finds breaking changes that affect a repo, and opens a pull request with a generated patch for review."
+      "desc": "GitHub App that detects breaking changes in API changelogs and opens PRs with AI-generated patches."
+    },
+    {
+      "name": "Uptime tracker",
+      "match": "uptime",
+      "desc": "MERN app that monitors websites for uptime and logs incidents."
+    },
+    {
+      "name": "Jarvis",
+      "match": "jarvis",
+      "desc": "Voice-activated agent loop with vision-based screen control, running on a local LLaMA model."
     }
   ],
   "x": "https://x.com/_Priyansh_10",
@@ -75,13 +88,13 @@
       "t": "learning by building, mostly in public"
     },
     {
-      "e": "🌀",
-      "t": "overthinker, working on it. kind about it too"
-    },
-    {
       "e": "☕",
       "t": "happy to help if you ask"
     }
   ],
-  "motto": "Be kind. Ask the dumb question. Ship the thing."
+  "motto": "Be kind. Ask the dumb question. Ship the thing.",
+  "car_livery": "purple-sector",
+  "show_pit": true,
+  "leetcode_user": "",
+  "codeforces_user": ""
 }
