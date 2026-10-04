@@ -212,7 +212,7 @@ const LIVERIES = { 'purple-sector': { b: '#f2f1ec', s: '#b44cff', w: '#b44cff', 
 const carSprite = (lv, p) => { let o = ''; CAR.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '.') return; const col = ch === 't' ? '#2c2c34' : ch === 'r' ? '#8b90a0' : lv[ch]; o += `<rect x="${(x * p).toFixed(1)}" y="${(y * p).toFixed(1)}" width="${p}" height="${p}" fill="${col}"/>`; })); return o; };
 
 function heatSvg() {
-  const W = 900, H = 378, X0 = 54, Y0 = 182, S = 12, G = 3, P = S + G, LT = 3.5, max = Math.max(1, ...days.map((d) => d.contributionCount));
+  const W = 900, H = 392, X0 = 54, Y0 = 182, S = 12, G = 3, P = S + G, LT = 3.5, max = Math.max(1, ...days.map((d) => d.contributionCount));
   const lvl = (c) => (c === 0 ? 0 : c / max <= 0.25 ? 1 : c / max <= 0.5 ? 2 : c / max <= 0.75 ? 3 : 4), bestDay = days.reduce((b, d) => (d.contributionCount > (b?.contributionCount ?? -1) ? d : b), null);
   const pos = {}; weeks.forEach((w, ci) => w.contributionDays.forEach((d) => { pos[d.date] = [X0 + ci * P, Y0 + d.weekday * P, ci]; }));
   let g = `${card(W, H)}${th(24, 78, fmt(contribs), { z: 76, f: 'hc', w: 700 })}${th(26, 102, 'CONTRIBUTIONS, LAST 12 MONTHS', { z: 11, c: K.mute, ls: 1.5 })}`;
@@ -234,22 +234,25 @@ function heatSvg() {
   if (!days.length) g += th(450, 236, 'no contribution data yet', { z: 13, c: K.mute, a: 'middle', f: 'b' });
   const fx = X0 + weeks.length * P + 2; if (weeks.length) for (let r = 0; r < 17; r++) for (let c = 0; c < 2; c++) g += `<rect x="${fx + c * 6}" y="${Y0 + r * 6}" width="6" height="6" fill="${(r + c) % 2 ? K.bg : K.text}"/>`;
   if (bestDay && bestDay.contributionCount && pos[bestDay.date]) { const [x, y] = pos[bestDay.date]; g += `<rect x="${x - 1.5}" y="${y - 1.5}" width="${S + 3}" height="${S + 3}" fill="none" stroke="${K.purple}" stroke-width="1.5"/><rect x="${x - 5}" y="${y - 20}" width="22" height="15" rx="3" fill="${K.purple}"/>${th(x + 6, y - 9, 'FL', { z: 10, a: 'middle' })}`; }
-  if (cfg.show_pit !== false && days.length) {
-    const gaps = []; let gs = -1; days.forEach((d, i) => { if (!d.contributionCount) { if (gs < 0) gs = i; } else { if (gs >= 0 && i - gs >= 4) gaps.push({ s: gs, n: i - gs }); gs = -1; } });
-    gaps.sort((a, b) => b.n - a.n); const tags = [];
-    gaps.slice(0, 8).forEach((gp, k) => { const p = pos[days[gp.s].date]; if (p && tags.every((t) => Math.abs(t.x - p[0]) > 40)) tags.push({ x: p[0], dnf: k === 0, n: gp.n }); });
-    g += `<line x1="${X0}" y1="300" x2="${fx}" y2="300" stroke="${K.dim}" stroke-dasharray="4 4"/>` + tags.map((t) => `<rect x="${t.x}" y="292" width="34" height="16" rx="3" fill="${t.dnf ? K.red : '#2a3263'}"/>${th(t.x + 17, 304, t.dnf ? 'DNF' : 'PIT', { z: 10, a: 'middle', c: t.dnf ? '#2b0505' : '#dcd8ff' })}`).join('') + th(24, 328, 'PIT LANE: 4+ DAYS OFF   DNF: LONGEST BREAK', { z: 10, c: K.mute, ls: 1 });
+  const laneY = 306, tags = [];
+  if (days.length) {
+    if (cfg.show_pit !== false) {
+      const gaps = []; let gs = -1; days.forEach((d, i) => { if (!d.contributionCount) { if (gs < 0) gs = i; } else { if (gs >= 0 && i - gs >= 4) gaps.push({ s: gs, n: i - gs }); gs = -1; } });
+      gaps.sort((x, y) => y.n - x.n);
+      gaps.slice(0, 8).forEach((gp, k) => { const p = pos[days[gp.s].date]; if (p && tags.every((t) => Math.abs(t.x - p[0]) > 40)) tags.push({ x: p[0], dnf: k === 0 }); });
+    }
+    g += `<line x1="${X0}" y1="${laneY}" x2="${fx + 12}" y2="${laneY}" stroke="${K.dim}" stroke-dasharray="4 4"/>` + tags.map((t) => `<rect x="${t.x}" y="${laneY + 6}" width="34" height="16" rx="3" fill="${t.dnf ? K.red : '#2a3263'}"/>${th(t.x + 17, laneY + 18, t.dnf ? 'DNF' : 'PIT', { z: 10, a: 'middle', c: t.dnf ? '#2b0505' : '#dcd8ff' })}`).join('');
+    g += th(24, 348, cfg.show_pit !== false ? 'PIT LANE: 4+ DAYS OFF   DNF: LONGEST BREAK' : 'PIT LANE', { z: 10, c: K.mute, ls: 1 });
   }
-  g += th(24, 356, bestDay && bestDay.contributionCount ? `FL: FASTEST LAP, ${bestDay.contributionCount} ON ${bestDay.date}   YELLOW: LONGEST STREAK   CHECKERED: THIS WEEK` : '', { z: 10, c: K.mute, ls: 1 });
-  g += th(716, 356, 'NONE', { z: 10, c: K.mute, a: 'end', ls: 1 }) + RAMP.map((c, i) => `<rect x="${726 + i * 16}" y="346" width="12" height="12" fill="${c}"/>`).join('') + th(812, 356, 'BEST', { z: 10, c: K.mute, ls: 1 });
-  const tday = days.length ? days[days.length - 1] : null, sl = best ? days.slice(bestEnd - best + 1, bestEnd + 1) : [];
-  if (tday && sl.length && pos[tday.date]) {
-    const byW = {}; for (const d of sl) { const p = pos[d.date]; (byW[p[2]] ??= []).push(p); }
-    const ws = Object.keys(byW).map(Number).sort((a, b) => a - b);
-    const pts = ws.length > 1 ? ws.map((ci) => [X0 + ci * P + S / 2, byW[ci].reduce((a, p) => a + p[1], 0) / byW[ci].length + S / 2]) : sl.map((d) => [pos[d.date][0] + S / 2, pos[d.date][1] + S / 2]);
-    const tp = pos[tday.date]; pts.push([tp[0] + S / 2, tp[1] + S / 2]);
-    const pathD = 'M' + pts.map(([x, y]) => `${x.toFixed(1)} ${(y - 4).toFixed(1)}`).join('L'), dur = Math.min(12, 6 + pts.length * 0.3).toFixed(1), lv = LIVERIES[cfg.car_livery] || LIVERIES['purple-sector'];
-    g += `<g opacity="0"><set attributeName="opacity" to="1" begin="${LT + 1.1}s" fill="freeze"/><g><animateMotion path="${pathD}" dur="${dur}s" begin="${LT + 1.1}s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;.8;1" calcMode="linear"/><g transform="translate(-19.5 -7)">${carSprite(lv, 1.3)}</g></g></g>`;
+  g += th(24, 372, bestDay && bestDay.contributionCount ? `FL: FASTEST LAP, ${bestDay.contributionCount} ON ${bestDay.date}   YELLOW: LONGEST STREAK   CHECKERED: THIS WEEK` : '', { z: 10, c: K.mute, ls: 1 });
+  g += th(716, 372, 'NONE', { z: 10, c: K.mute, a: 'end', ls: 1 }) + RAMP.map((c, i) => `<rect x="${726 + i * 16}" y="362" width="12" height="12" fill="${c}"/>`).join('') + th(812, 372, 'BEST', { z: 10, c: K.mute, ls: 1 });
+  if (days.length) {
+    const L0 = X0, L1 = fx + 12, span = L1 - L0, drive = 7, stops = [...tags].sort((x, y) => x.x - y.x).map((t) => ({ f: Math.min(0.97, Math.max(0.03, (t.x + 17 - L0) / span)), d: t.dnf ? 1.4 : 0.7 }));
+    const dur = drive + stops.reduce((q, st) => q + st.d, 0) + 1.2, kp = [0], kt = [0]; let tc = 0, lf = 0;
+    for (const st of stops) { tc += (st.f - lf) * drive; kp.push(st.f); kt.push(tc); tc += st.d; kp.push(st.f); kt.push(tc); lf = st.f; }
+    tc += (1 - lf) * drive; kp.push(1); kt.push(tc); kp.push(1); kt.push(dur);
+    const lv = LIVERIES[cfg.car_livery] || LIVERIES['purple-sector'], ktS = kt.map((v, i) => (i === kt.length - 1 ? '1' : (v / dur).toFixed(4))).join(';'), kpS = kp.map((v) => v.toFixed(4)).join(';');
+    g += `<g opacity="0"><set attributeName="opacity" to="1" begin="${LT + 1.1}s" fill="freeze"/><g><animateMotion path="M${L0} ${laneY - 8}H${L1}" dur="${dur.toFixed(2)}s" begin="${LT + 1.1}s" repeatCount="indefinite" keyPoints="${kpS}" keyTimes="${ktS}" calcMode="linear"/><g transform="translate(-19.5 -7)">${carSprite(lv, 1.3)}</g></g></g>`;
   }
   return svg(W, H, g, '.c{animation:p .3s ease-out backwards}@keyframes p{from{opacity:0}}');
 }
