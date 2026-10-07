@@ -157,7 +157,20 @@ const about = (cfg.about_lines || []).map((l) => ({ e: l.e, t: l.t }));
 if (R[0]) about.push({ e: '🕒', t: `last push: ${R[0].name}, ${ago(R[0].pushedAt)}` });
 const motto = cfg.motto || '';
 const norm = (x) => String(x).toLowerCase().replace(/[^a-z0-9]/g, '');
-const projs = (cfg.projects || []).slice(0, 6).map((p) => { const want = norm(p.match || p.name), r = p.repo ? R.find((x) => x.nameWithOwner.toLowerCase() === p.repo.toLowerCase()) : R.find((x) => norm(x.name).includes(want)); return { ...p, repo: p.closed ? '' : p.repo || r?.nameWithOwner || '', url: p.url || r?.homepageUrl || '', desc: p.desc || r?.description || p.name, tags: p.tags?.length ? p.tags : [r?.primaryLanguage?.name].filter(Boolean) }; });
+async function findRepo(p, i) {
+  if (MOCK) return { full: `${USER}/${p.name.replace(/\s+/g, '-')}`, desc: 'Description pulled from the GitHub repo appears here, exactly as written on GitHub.', home: i % 3 === 2 ? '' : 'https://example.com', lang: ['TypeScript', 'JavaScript', 'Python'][i % 3], priv: !!p.private, pushed: new Date(Date.now() - i * 3 * 864e5).toISOString() };
+  const want = norm(p.match || p.name), r = p.repo ? null : R.find((x) => norm(x.name) === want) || R.find((x) => norm(x.name).includes(want));
+  if (r) return { full: r.nameWithOwner, desc: r.description || '', home: r.homepageUrl || '', lang: r.primaryLanguage?.name || '', priv: false, pushed: r.pushedAt };
+  const slugs = p.repo ? [p.repo] : [...new Set([p.name.trim().replace(/\s+/g, '-'), p.name.replace(/\s+/g, ''), p.name.trim()])].map((x) => `${USER}/${x}`);
+  for (const sl of slugs) { const x = await jg(`https://api.github.com/repos/${sl}`); if (x) return { full: x.full_name, desc: x.description || '', home: x.homepage || '', lang: x.language || '', priv: !!x.private, pushed: x.pushed_at }; }
+  return null;
+}
+const projs = [], missing = [];
+for (const [i, p] of (cfg.projects || []).slice(0, 10).entries()) {
+  const r = await findRepo(p, i); if (!r) missing.push(p.name); const priv = !!(p.private || r?.priv);
+  projs.push({ name: p.name, repo: priv ? '' : r?.full || '', url: p.url || r?.home || '', desc: r?.desc || p.desc || '', lang: r?.lang || '', priv, pushed: r?.pushed || '', status: p.status || '' });
+}
+if (missing.length) console.log(`no GitHub repo found for: ${missing.join(', ')} (add "repo": "owner/name" to that project in config.json)`);
 
 // ---------- assets ----------
 for (const f of fs.readdirSync(OA)) if (f.endsWith('.svg')) fs.unlinkSync(path.join(OA, f));
@@ -184,16 +197,16 @@ ${t(24, 88, '$', { z: 13, f: 'm', c: C.green })}${t(40, 88, `git log --author="$
 }
 
 async function asciiSvg() {
-  const W = 900, f = ['jpg', 'jpeg', 'png', 'webp'].map((e) => path.join(root, 'assets', `photo.${e}`)).find((p) => fs.existsSync(p)); let lines = null; const cols = 96;
+  const W = 900, f = ['jpg', 'jpeg', 'png', 'webp'].map((e) => path.join(root, 'assets', `photo.${e}`)).find((p) => fs.existsSync(p)); let lines = null; const cols = 120;
   if (f) try {
     const { default: sharp } = await import('sharp'); const m = await sharp(f).metadata(), rows = Math.round(cols * (m.height / m.width) * 0.52);
-    const { data } = await sharp(f).resize(cols, rows, { fit: 'fill' }).grayscale().normalize().raw().toBuffer({ resolveWithObject: true }); const ramp = ' .:-=+*#%@';
-    lines = Array.from({ length: rows }, (_, y) => Array.from({ length: cols }, (_, x) => ramp[Math.min(9, Math.floor((data[y * cols + x] / 256) * 10))]).join(''));
+    const { data } = await sharp(f).resize(cols, rows, { fit: 'fill' }).grayscale().normalize().raw().toBuffer({ resolveWithObject: true }); const ramp = " .'`^,:;Il!i><~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
+    lines = Array.from({ length: rows }, (_, y) => Array.from({ length: cols }, (_, x) => ramp[Math.min(ramp.length - 1, Math.floor((data[y * cols + x] / 256) * ramp.length))]).join(''));
   } catch { lines = null; }
   const head = `${win(W)}${t(84, 31, 'photo.txt', { z: 12, f: 'm', c: C.mute })}`;
   if (!lines) return svg(W, 220, `${card(W, 220, C.navy)}${head}${t(450, 128, 'cat photo.txt', { z: 14, f: 'm', c: C.mute, a: 'middle' })}${t(450, 154, 'not generated yet: add assets/photo.jpg', { z: 12, f: 'm', c: C.dim, a: 'middle' })}`);
-  const fz = 7.6, lh = 8.8, x0 = (W - cols * fz * 0.6) / 2, H = Math.round(lines.length * lh + 84);
-  return svg(W, H, `${card(W, H, C.navy)}${head}${lines.map((l, i) => `<text class="l" x="${x0}" y="${78 + i * lh}" font-size="${fz}" fill="#aab3d6" xml:space="preserve" style="white-space:pre;animation-delay:${(i * 0.012).toFixed(2)}s" font-family="${FF.m}">${esc(l)}</text>`).join('')}`, '.l{animation:f .5s ease-out backwards}@keyframes f{from{opacity:0}}');
+  const fz = 6.6, lh = 7.6, x0 = (W - cols * fz * 0.6) / 2, H = Math.round(lines.length * lh + 84);
+  return svg(W, H, `${card(W, H, C.navy)}${head}${lines.map((l, i) => `<text class="l" x="${x0}" y="${78 + i * lh}" font-size="${fz}" fill="#c9d1f0" xml:space="preserve" style="white-space:pre;animation-delay:${(i * 0.012).toFixed(2)}s" font-family="${FF.m}">${esc(l)}</text>`).join('')}`, '.l{animation:f .5s ease-out backwards}@keyframes f{from{opacity:0}}');
 }
 
 const headerSvg = (n, title, desc) => { const pt = `${String(n).padStart(2, '0')} · ${desc}`, pw = Math.round(pt.length * (12 * 0.66 + 1.4) + 40), uw = Math.round(tw(title, 44, 'h')); return svg(900, 124, `${dots(900, 124)}<g transform="rotate(-2 20 34)"><rect x="8" y="18" width="${pw}" height="28" rx="14" fill="${C.peri}"/>${t(24, 37, pt, { z: 12, f: 'h', w: 700, ls: 1.4, c: C.bg })}</g>${t(8, 96, title, { z: 44, f: 'h', w: 700, ls: -1 })}<path d="M10 110 C${10 + uw * 0.3} 103 ${10 + uw * 0.7} 110 ${10 + uw} 106" fill="none" stroke="${C.peri}" stroke-width="2.4" stroke-linecap="round"/>`); };
@@ -356,11 +369,15 @@ function ossCard(c) {
 }
 
 const clip = (s, n, k) => { const l = wrap(s, n); return l.length > k ? [...l.slice(0, k - 1), cut(l.slice(k - 1).join(' '), n)] : l; };
-function projCard(p, i, all) {
-  const W = 440, ml = Math.max(...all.map((q) => clip(q.desc, 46, 3).length)), H = 96 + ml * 22 + 44, d = clip(p.desc, 46, 3), linked = !!(p.repo || p.url);
-  return svg(W, H, `${card(W, H)}${t(24, 46, cut(p.name, 22), { z: 24, f: 'h', w: 700 })}${t(416, 44, cut(upper(p.status || p.tags?.[0] || ''), 14), { z: 11, f: 'm', c: C.mute, ls: 2, a: 'end' })}
-${d.map((x, k) => t(24, 84 + k * 22, x, { z: 14, c: C.mute })).join('')}${linked ? `${t(24, H - 24, 'Read the source', { z: 12, f: 'm', c: C.peri })}${arr(24 + 15 * 7.2 + 6, H - 34, 9, C.peri)}` : p.closed ? t(24, H - 24, 'closed source', { z: 12, f: 'm', c: C.mute }) : ''}`);
+const shortDate = (d) => new Date(d).toLocaleString('en', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+function projCard(p) {
+  const W = 440, H = 214, d = p.desc ? clip(p.desc, 46, 3) : ['no description on GitHub yet'];
+  const st = p.priv ? ['PRIVATE', C.orange] : p.status ? [upper(p.status), C.yellow] : p.url ? ['LIVE', C.green] : null;
+  const pill = st ? `<rect x="22" y="${H - 46}" width="${Math.round(st[0].length * 7.8 + 34)}" height="24" rx="12" fill="${st[1]}" fill-opacity=".14" stroke="${st[1]}" stroke-opacity=".5"/><circle cx="37" cy="${H - 34}" r="3.5" fill="${st[1]}"/>${t(47, H - 30, st[0], { z: 10, f: 'm', c: st[1], ls: 1.2 })}` : '';
+  return svg(W, H, `${card(W, H)}${t(24, 48, cut(p.name, 22), { z: 24, f: 'h', w: 700 })}${p.lang ? t(416, 46, upper(cut(p.lang, 14)), { z: 11, f: 'm', c: C.mute, ls: 2, a: 'end' }) : ''}${d.map((x, k) => t(24, 86 + k * 22, x, { z: 14, c: p.desc ? C.mute : C.dim })).join('')}${pill}${p.pushed ? t(416, H - 30, `updated ${shortDate(p.pushed)}`, { z: 11, f: 'm', c: C.dim, a: 'end' }) : ''}`);
 }
+const pbtn = (label, primary) => svg(214, 56, `<rect x="1" y="1" width="212" height="46" rx="12" fill="${primary ? C.peri : C.card}" stroke="${primary ? C.peri : C.line}"/>${t(22, 30, label, { z: 14, f: 'h', w: 700, ls: 1, c: primary ? C.bg : C.text })}${arr(180, 17, 13, primary ? C.bg : C.peri)}`);
+const noteSvg = () => svg(900, 44, t(4, 26, 'A few projects are still in development, so their live links may not work yet.', { z: 13, f: 'm', c: C.mute }));
 
 async function chessSvg() {
   const W = 900, H = 300, S = 30, BX = 26, BY = 30, st = await j(`https://api.chess.com/pub/player/${CHESS}/stats`); let game = null;
@@ -388,7 +405,8 @@ for (const [k, [n, ti, de]] of Object.entries(HD)) write(`hdr-${k}.svg`, headerS
 write('about.svg', aboutSvg()); write('stats.svg', statsSvg()); write('heatmap.svg', heatSvg()); write('ecg.svg', ecgSvg());
 const sk = Object.keys(stack); sk.forEach((k, i) => write(`stack-${i}.svg`, stackSvg(k, stack[k]))); const langs = langsSvg(); if (langs) write('langs.svg', langs);
 write('oss.svg', ossSvg()); cards.forEach((c, i) => write(`oss-${i}.svg`, ossCard(c)));
-projs.forEach((p, i) => write(`proj-${i}.svg`, projCard(p, i, projs)));
+projs.forEach((p, i) => write(`proj-${i}.svg`, projCard(p)));
+write('btn-source.svg', pbtn('SOURCE', false)); write('btn-live.svg', pbtn('LIVE', true)); write('btn-none.svg', svg(214, 56, '')); write('proj-note.svg', noteSvg());
 if (lcData) write('lc.svg', lcSvg(lcData)); if (cfData) write('cf.svg', cfSvg(cfData));
 write('chess.svg', await chessSvg());
 const hasMail = cfg.email && !cfg.email.includes('CHANGE_ME'); const contacts = [...(hasMail ? [['Email', `mailto:${cfg.email}`]] : []), ['LinkedIn', cfg.linkedin], ['X', cfg.x], ['GitHub', `https://github.com/${USER}`]].filter(([, u]) => u);
@@ -404,7 +422,10 @@ const readme = [
   im('hdr-activity.svg', 'Activity'), im('stats.svg', 'GitHub stats'), lk(`https://github.com/${USER}`, im('heatmap.svg', 'Contribution heatmap')), lk(`https://github.com/${USER}`, im('ecg.svg', 'Monthly contributions')),
   im('hdr-stack.svg', 'Stack'), sk.map((k, i) => im(`stack-${i}.svg`, k)).join('\n') + (langs ? `\n${im('langs.svg', 'Languages')}` : ''),
   im('hdr-oss.svg', 'Open source'), lk(`https://github.com/pulls?q=is%3Apr+author%3A${USER}+is%3Amerged`, im('oss.svg', 'Pull requests as a commit graph')), pair(cards, (c, i) => lk(c.link, im(`oss-${i}.svg`, `${c.title}, ${c.merged} merged`, '49%'))),
-  im('hdr-projects.svg', 'Projects'), pair(projs, (p, i) => lk(p.repo ? `https://github.com/${p.repo}` : p.url, im(`proj-${i}.svg`, p.name, '49%'))),
+  im('hdr-projects.svg', 'Projects'), (() => { const rows = []; for (let i = 0; i < projs.length; i += 2) { const pr = projs.slice(i, i + 2);
+    rows.push(pr.map((p, k) => lk(p.url || (p.repo ? `https://github.com/${p.repo}` : ''), im(`proj-${i + k}.svg`, p.name, '49%'))).join(' '));
+    rows.push(pr.map((p) => [p.repo ? lk(`https://github.com/${p.repo}`, im('btn-source.svg', `${p.name} source`, '24%')) : im('btn-none.svg', '', '24%'), p.url ? lk(p.url, im('btn-live.svg', `${p.name} live site`, '24%')) : im('btn-none.svg', '', '24%')].join(' ')).join(' ')); }
+    return rows.join('<br>\n') + '<br>\n' + im('proj-note.svg', 'A few projects are still in development, so their live links may not work yet.'); })(),
   ...(hasCP ? [im('hdr-cp.svg', 'Problem solving'), [lcData && lk(`https://leetcode.com/u/${lcData.user}/`, im('lc.svg', 'LeetCode stats')), cfData && lk(`https://codeforces.com/profile/${cfData.handle}`, im('cf.svg', 'Codeforces stats'))].filter(Boolean).join('\n')] : []),
   im('hdr-chess.svg', 'Chess'), lk(`https://www.chess.com/member/${CHESS}`, im('chess.svg', 'Chess.com stats')),
   im('hdr-contact.svg', 'Contact'), contacts.map(([l, u], i) => lk(u, im(`contact-${i}.svg`, l, cw))).join(' '),

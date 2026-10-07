@@ -49,31 +49,36 @@
   "extra_oss": [],
   "projects": [
     {
-      "name": "git-profile-switcher",
-      "match": "git-profile-switcher",
-      "desc": "CLI that switches Git identity and SSH key per command across multiple GitHub accounts. PowerShell, Bash, Nushell."
-    },
-    {
-      "name": "Argument Gym",
-      "repo": "Priyansh10ff/Argument-Gym",
-      "url": "https://argument-gym.vercel.app",
-      "desc": "AI debate training app with ELO ratings, adaptive opponents and live human vs human debates."
-    },
-    {
       "name": "Patchwork",
-      "closed": true,
-      "status": "building",
+      "private": true,
       "desc": "GitHub App that detects breaking changes in API changelogs and opens PRs with AI-generated patches."
     },
     {
-      "name": "Uptime tracker",
-      "match": "uptime",
-      "desc": "MERN app that monitors websites for uptime and logs incidents."
+      "name": "Interview Arena"
     },
     {
-      "name": "Jarvis",
-      "match": "jarvis",
-      "desc": "Voice-activated agent loop with vision-based screen control, running on a local LLaMA model."
+      "name": "Weft"
+    },
+    {
+      "name": "Watchdog"
+    },
+    {
+      "name": "Haul"
+    },
+    {
+      "name": "Syncfolio"
+    },
+    {
+      "name": "Skill Barter"
+    },
+    {
+      "name": "Argument Gym"
+    },
+    {
+      "name": "git-profile-switcher"
+    },
+    {
+      "name": "Abhaya"
     }
   ],
   "x": "https://x.com/_Priyansh_10",
