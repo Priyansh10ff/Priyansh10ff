@@ -11,8 +11,8 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const cfg = JSON.parse(fs.readFileSync(path.join(root, 'config.json'), 'utf8'));
 const USER = cfg.github_user, CHESS = cfg.chess_user, USERS = [USER, ...(cfg.other_github_users || [])];
 const TOKEN = process.env.GH_TOKEN || '', MOCK = !!process.env.MOCK;
-const C = { bg: '#0b0d14', card: '#141722', navy: '#10142a', line: '#222739', text: '#f2f3f7', mute: '#8b90a0', dim: '#3a4157', peri: '#8c9eff', orange: '#eb9b3a', yellow: '#f3d34a', lav: '#dcd8ff', purple: '#5b3fc4', red: '#ff6b6b', green: '#5fd68a', gray: '#4b5268' };
-const RAMP = ['#1a1a1f', '#26382d', '#1f7a45', '#27d067', '#b44cff'], PAL = ['#8c9eff', '#eb9b3a', '#f3d34a', '#dcd8ff', '#5fd68a', '#ff6b6b', '#8b90a0'];
+const C = { bg: '#09090a', card: '#131315', navy: '#0f0f11', line: '#232326', text: '#f4f4f5', mute: '#8e8e93', dim: '#3f3f46', peri: '#e4e4e7', orange: '#eb9b3a', yellow: '#f4f4f5', lav: '#d4d4d8', purple: '#e5484d', red: '#e5484d', green: '#5fd68a', gray: '#52525b', sig: '#e5484d' };
+const RAMP = ['#1a1a1f', '#26382d', '#1f7a45', '#27d067', '#b44cff'], PAL = ['#f4f4f5', '#a1a1aa', '#71717a', '#e5484d', '#52525b', '#d4d4d8', '#3f3f46'];
 const FF = { h: "SG,'Space Grotesk',sans-serif", b: "PJ,'Plus Jakarta Sans',sans-serif", m: "JBM,'JetBrains Mono',monospace", hc: "BC,'Barlow Condensed',sans-serif", e: "JBM,'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',monospace" };
 const FONTS = { SG: [['700', 'sg-700.woff2']], PJ: [['400', 'pj-400.woff2']], JBM: [['400', 'jbm-400.woff2']], BC: [['700', 'bc-700.woff2']] };
 const ICONS = fs.existsSync(path.join(root, 'fonts/icons.json')) ? JSON.parse(fs.readFileSync(path.join(root, 'fonts/icons.json'), 'utf8')) : {};
@@ -37,7 +37,7 @@ const write = (n, s) => fs.writeFileSync(path.join(OA, n), s);
 
 
 const card = (w, h, fill = C.card, r = 18) => `<rect x=".5" y=".5" width="${w - 1}" height="${h - 1}" rx="${r}" fill="${fill}" stroke="${C.line}"/>`;
-const dots = (w, h, id = 'dg') => `<defs><pattern id="${id}" width="30" height="30" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="1" fill="#1b2030"/></pattern></defs><rect width="${w}" height="${h}" rx="18" fill="${C.bg}"/><rect width="${w}" height="${h}" rx="18" fill="url(#${id})"/>`;
+const dots = (w, h, id = 'dg') => `<defs><pattern id="${id}" width="30" height="30" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="1" fill="#1d1d21"/></pattern></defs><rect width="${w}" height="${h}" rx="18" fill="${C.bg}"/><rect width="${w}" height="${h}" rx="18" fill="url(#${id})"/>`;
 const ico = (name, x, y, s) => (ICONS[name.toLowerCase()] ? `<path transform="translate(${x} ${y}) scale(${s / 24})" d="${ICONS[name.toLowerCase()]}" fill="${C.text}"/>` : '');
 const ago = (d) => { const n = Math.floor((Date.now() - Date.parse(d)) / 864e5); return n <= 0 ? 'today' : n === 1 ? 'yesterday' : `${n}d ago`; };
 
@@ -193,11 +193,11 @@ ${t(38, 206, cfg.name, { z: 88, f: 'h', w: 700, ls: -3 })}${t(40, 262, cfg.hero_
 <g transform="translate(470 56)"><rect width="410" height="300" rx="18" fill="${C.navy}" stroke="${C.line}"/>${win(410)}${t(84, 31, `git log: ${USER.toLowerCase()}`, { z: 12, f: 'm', c: C.mute })}
 ${t(24, 88, '$', { z: 13, f: 'm', c: C.green })}${t(40, 88, `git log --author="${USER}" -3`, { z: 13, f: 'm' })}${cl}${t(24, py, '$', { z: 13, f: 'm', c: C.green })}<rect x="40" y="${py - 12}" width="8" height="15" fill="${C.mute}"><animate attributeName="opacity" values="1;1;0;0" dur="1.1s" repeatCount="indefinite"/></rect></g>
 <g transform="rotate(3 ${880 - mw / 2} 56)"><rect x="${880 - mw}" y="38" width="${mw}" height="36" rx="18" fill="${C.lav}"/><circle cx="${880 - mw + 22}" cy="56" r="7" fill="${C.purple}"/>${t(880 - mw + 36, 62, mt, { z: 13, f: 'h', w: 700, ls: 1, c: C.purple })}</g>
-<g transform="rotate(-2 560 356)"><rect x="486" y="338" width="${rw}" height="34" rx="17" fill="${C.bg}" stroke="${C.line}"/><circle cx="504" cy="355" r="4" fill="${C.orange}"/>${t(516, 360, rt, { z: 13, f: 'h', w: 700 })}</g>
-<g transform="rotate(2 ${862 - cw2 / 2} 356)"><rect x="${862 - cw2}" y="338" width="${cw2}" height="34" rx="17" fill="${C.orange}"/>${t(862 - cw2 + 20, 360, ct, { z: 13, f: 'h', w: 700, c: C.bg })}</g>`);
+<g transform="rotate(-2 560 356)"><rect x="486" y="338" width="${rw}" height="34" rx="17" fill="${C.bg}" stroke="${C.line}"/><circle cx="504" cy="355" r="4" fill="${C.sig}"/>${t(516, 360, rt, { z: 13, f: 'h', w: 700 })}</g>
+<g transform="rotate(2 ${862 - cw2 / 2} 356)"><rect x="${862 - cw2}" y="338" width="${cw2}" height="34" rx="17" fill="${C.lav}"/>${t(862 - cw2 + 20, 360, ct, { z: 13, f: 'h', w: 700, c: C.bg })}</g>`);
 }
 
-const headerSvg = (n, title, desc) => { const pt = `${String(n).padStart(2, '0')} · ${desc}`, pw = Math.round(pt.length * (12 * 0.66 + 1.4) + 40), uw = Math.round(tw(title, 44, 'h')); return svg(900, 124, `${dots(900, 124)}<g transform="rotate(-2 20 34)"><rect x="8" y="18" width="${pw}" height="28" rx="14" fill="${C.peri}"/>${t(24, 37, pt, { z: 12, f: 'h', w: 700, ls: 1.4, c: C.bg })}</g>${t(8, 96, title, { z: 44, f: 'h', w: 700, ls: -1 })}<path d="M10 110 C${10 + uw * 0.3} 103 ${10 + uw * 0.7} 110 ${10 + uw} 106" fill="none" stroke="${C.peri}" stroke-width="2.4" stroke-linecap="round"/>`); };
+const headerSvg = (n, title, desc) => { const pt = `${String(n).padStart(2, '0')} · ${desc}`, pw = Math.round(pt.length * (12 * 0.66 + 1.4) + 40), uw = Math.round(tw(title, 44, 'h')); return svg(900, 124, `${dots(900, 124)}<g transform="rotate(-2 20 34)"><rect x="8" y="18" width="${pw + 14}" height="28" rx="14" fill="${C.peri}"/><circle cx="23" cy="32" r="4" fill="${C.sig}"/>${t(36, 37, pt, { z: 12, f: 'h', w: 700, ls: 1.4, c: C.bg })}</g>${t(8, 96, title, { z: 44, f: 'h', w: 700, ls: -1 })}<path d="M10 110 C${10 + uw * 0.3} 103 ${10 + uw * 0.7} 110 ${10 + uw} 106" fill="none" stroke="${C.sig}" stroke-width="2.4" stroke-linecap="round"/>`); };
 
 function aboutSvg() {
   const f = ['webp', 'png', 'jpg', 'jpeg'].map((e) => path.join(root, 'assets', `photo.${e}`)).find((x) => fs.existsSync(x));
@@ -249,7 +249,7 @@ function heatSvg() {
       gaps.sort((x, y) => y.n - x.n);
       gaps.slice(0, 8).forEach((gp, k) => { const p = pos[days[gp.s].date]; if (p && tags.every((t) => Math.abs(t.x - p[0]) > 40)) tags.push({ x: p[0], dnf: k === 0 }); });
     }
-    g += `<line x1="${X0}" y1="${laneY}" x2="${fx + 12}" y2="${laneY}" stroke="${K.dim}" stroke-dasharray="4 4"/>` + tags.map((t) => `<rect x="${t.x}" y="${laneY + 6}" width="34" height="16" rx="3" fill="${t.dnf ? K.red : '#2a3263'}"/>${th(t.x + 17, laneY + 18, t.dnf ? 'DNF' : 'PIT', { z: 10, a: 'middle', c: t.dnf ? '#2b0505' : '#dcd8ff' })}`).join('');
+    g += `<line x1="${X0}" y1="${laneY}" x2="${fx + 12}" y2="${laneY}" stroke="${K.dim}" stroke-dasharray="4 4"/>` + tags.map((t) => `<rect x="${t.x}" y="${laneY + 6}" width="34" height="16" rx="3" fill="${t.dnf ? K.red : '#2e2e33'}"/>${th(t.x + 17, laneY + 18, t.dnf ? 'DNF' : 'PIT', { z: 10, a: 'middle', c: t.dnf ? '#2b0505' : '#d4d4d8' })}`).join('');
     g += th(24, 348, cfg.show_pit !== false ? 'PIT LANE: 4+ DAYS OFF   DNF: LONGEST BREAK' : 'PIT LANE', { z: 10, c: K.mute, ls: 1 });
   }
   g += th(24, 372, bestDay && bestDay.contributionCount ? `FL: FASTEST LAP, ${bestDay.contributionCount} ON ${bestDay.date}   YELLOW: LONGEST STREAK   CHECKERED: THIS WEEK` : '', { z: 10, c: K.mute, ls: 1 });
@@ -285,7 +285,7 @@ function cfSvg(cf) {
   return svg(W, H, g);
 }
 function lcSvg(lc) {
-  const W = 900, H = 260, X1 = 350, RA = ['#1c1f2b', '#4a3517', '#7a531c', '#b97a26', '#eb9b3a'];
+  const W = 900, H = 260, X1 = 350, RA = ['#1f1f23', '#4a3517', '#7a531c', '#b97a26', '#eb9b3a'];
   let g = `${card(W, H)}${t(24, 40, 'LeetCode', { z: 20, f: 'h', w: 700 })}${t(300, 40, lc.user, { z: 12, f: 'm', c: C.mute, a: 'end' })}`;
   const c = lc.contest; g += t(24, 68, c ? `contest rating ${Math.round(c.rating)} · top ${c.top}%` : 'no contest rating yet', { z: 13, c: c ? C.peri : C.mute });
   g += t(24, 88, lc.ranking ? `global rank #${fmt(lc.ranking)}` : '', { z: 12, f: 'm', c: C.mute });
@@ -346,8 +346,8 @@ function ossSvg() {
   if (!n) return svg(W, 140, `${card(W, 140)}${head}${t(450, 124, 'merged pull requests appear here once the token can see them', { z: 12, f: 'm', c: C.mute, a: 'middle' })}`);
   const c = 0.866, sn = 0.5, FW = 32, FD = 32, R = (i) => Math.abs(Math.sin(i * 12.9898) * 43758.5453) % 1;
   const P = (bx, by, x, y, z = 0) => [bx + (x - y) * c, by + (x + y) * sn - z], pts = (a) => a.map((q) => q.map((v) => v.toFixed(1)).join(',')).join(' ');
-  const pal = [['#2b335c', '#1c2240', '#141931'], ['#33365a', '#21243f', '#171a2e'], ['#2a3a52', '#1b2638', '#131b29']];
-  let g = `${card(W, H)}${head}<rect x="16" y="${street}" width="${W - 32}" height="46" fill="#0f1224"/><rect x="16" y="${street - 5}" width="${W - 32}" height="5" fill="#1e2440"/>`;
+  const pal = [['#2a2a2e', '#1e1e21', '#161618'], ['#303034', '#222225', '#18181a'], ['#26262a', '#1b1b1e', '#131315']];
+  let g = `${card(W, H)}${head}<rect x="16" y="${street}" width="${W - 32}" height="46" fill="#0d0d0f"/><rect x="16" y="${street - 5}" width="${W - 32}" height="5" fill="#1f1f23"/>`;
   for (let x = 28; x < W - 30; x += 40) g += `<rect x="${x}" y="${street + 22}" width="22" height="2" fill="${C.dim}"/>`;
   let bills = '', idx = 0;
   rows.forEach((row, ri) => {
@@ -359,19 +359,19 @@ function ossSvg() {
         const A = P(bx, by, xa, ya, za), B = P(bx, by, xa + w, ya, za), C2 = P(bx, by, xa + w, ya + d, za), D = P(bx, by, xa, ya + d, za), u = (q) => [q[0], q[1] - h];
         let o = `<polygon points="${pts([D, C2, u(C2), u(D)])}" fill="${cl[1]}"/><polygon points="${pts([B, C2, u(C2), u(B)])}" fill="${cl[2]}"/><polygon points="${pts([u(A), u(B), u(C2), u(D)])}" fill="${cl[0]}"/>`;
         if (win) for (let z = za + 9; z < za + h - 7; z += 11) {
-          for (let x = xa + 4; x < xa + w - 4; x += 7) o += `<polygon class="w" style="animation-delay:${(+dl + 0.8 + (z - za) / 170).toFixed(2)}s" points="${pts([P(bx, by, x, ya + d, z), P(bx, by, x + 4, ya + d, z), P(bx, by, x + 4, ya + d, z + 6), P(bx, by, x, ya + d, z + 6)])}" fill="${R(seed + z * 3 + x) > 0.45 ? '#f3d38a' : '#232b4d'}"/>`;
-          for (let y = ya + 4; y < ya + d - 4; y += 7) o += `<polygon points="${pts([P(bx, by, xa + w, y, z), P(bx, by, xa + w, y + 4, z), P(bx, by, xa + w, y + 4, z + 6), P(bx, by, xa + w, y, z + 6)])}" fill="${R(seed + z * 5 + y + 1) > 0.6 ? '#b89f62' : '#1a2140'}"/>`;
+          for (let x = xa + 4; x < xa + w - 4; x += 7) o += `<polygon class="w" style="animation-delay:${(+dl + 0.8 + (z - za) / 170).toFixed(2)}s" points="${pts([P(bx, by, x, ya + d, z), P(bx, by, x + 4, ya + d, z), P(bx, by, x + 4, ya + d, z + 6), P(bx, by, x, ya + d, z + 6)])}" fill="${R(seed + z * 3 + x) > 0.45 ? '#ececec' : '#26262b'}"/>`;
+          for (let y = ya + 4; y < ya + d - 4; y += 7) o += `<polygon points="${pts([P(bx, by, xa + w, y, z), P(bx, by, xa + w, y + 4, z), P(bx, by, xa + w, y + 4, z + 6), P(bx, by, xa + w, y, z + 6)])}" fill="${R(seed + z * 5 + y + 1) > 0.6 ? '#a1a1aa' : '#1c1c1f'}"/>`;
         }
         return o + `<polyline points="${pts([u(D), u(C2), u(B)])}" fill="none" stroke="${C.gray}" stroke-width="1.1"/>`;
       };
       let b = box(0, 0, 0, FW, FD, h1, col), rz = h1, rx = 0, ry = 0, rw = FW, rd = FD;
       if (tiered) { b += box(ins, ins, h1, FW - 2 * ins, FD - 2 * ins, Hb - h1, col); rz = Hb; rx = ins; ry = ins; rw = FW - 2 * ins; rd = FD - 2 * ins; }
-      b += box(rx + rw - 9, ry + 2, rz, 6, 6, 5, ['#4b5268', '#3a4157', '#2c3245'], false);
+      b += box(rx + rw - 9, ry + 2, rz, 6, 6, 5, ['#52525b', '#3f3f46', '#2e2e33'], false);
       const an = P(bx, by, rx + 4, ry + 4, rz);
-      b += `<line x1="${an[0].toFixed(1)}" y1="${an[1].toFixed(1)}" x2="${an[0].toFixed(1)}" y2="${(an[1] - 20).toFixed(1)}" stroke="${C.mute}" stroke-width="1.1"/><circle class="bl" cx="${an[0].toFixed(1)}" cy="${(an[1] - 20).toFixed(1)}" r="2" fill="#ff5f56" style="animation-delay:${(i * 0.3).toFixed(1)}s"/>`;
+      b += `<line x1="${an[0].toFixed(1)}" y1="${an[1].toFixed(1)}" x2="${an[0].toFixed(1)}" y2="${(an[1] - 20).toFixed(1)}" stroke="${C.mute}" stroke-width="1.1"/><circle class="bl" cx="${an[0].toFixed(1)}" cy="${(an[1] - 20).toFixed(1)}" r="2" fill="#e5484d" style="animation-delay:${(i * 0.3).toFixed(1)}s"/>`;
       g += `<g class="b" style="animation-delay:${dl}s">${b}</g>`;
       const nm = cut(label[p.repo] || 'private', 16), nb = label[p.repo] ? `#${p.num} merged` : 'merged', bw = Math.max(nm.length * 6.1, nb.length * 5.5) + 18, o = P(bx, by, rx + 1, ry + rd - 3, rz + 50);
-      bills += `<g class="hb" style="animation-delay:${(+dl + 1.2).toFixed(2)}s"><g transform="matrix(0.866 0.5 0 1 ${(o[0] - bw * 0.25).toFixed(1)} ${(o[1] - bw * 0.14).toFixed(1)})"><line x1="${(bw * 0.22).toFixed(1)}" y1="30" x2="${(bw * 0.22).toFixed(1)}" y2="52" stroke="${C.gray}" stroke-width="2"/><line x1="${(bw * 0.62).toFixed(1)}" y1="30" x2="${(bw * 0.62).toFixed(1)}" y2="44" stroke="${C.gray}" stroke-width="2"/><polygon points="${(bw * 0.15).toFixed(1)},-4 ${(bw * 0.35).toFixed(1)},-4 ${(bw * 0.5).toFixed(1)},30 0,30" fill="#f3d38a" opacity=".08"/><rect width="${bw.toFixed(1)}" height="30" rx="2" fill="#efeadf" stroke="${C.gray}"/><rect width="${bw.toFixed(1)}" height="4" fill="${C.peri}"/>${t(8, 16, nm, { z: 10, f: 'm', c: C.bg })}${t(8, 26, nb, { z: 9, f: 'm', c: C.purple })}<rect x="${(bw * 0.18).toFixed(1)}" y="-6" width="5" height="3" fill="${C.mute}"/><rect x="${(bw * 0.7).toFixed(1)}" y="-6" width="5" height="3" fill="${C.mute}"/></g></g>`;
+      bills += `<g class="hb" style="animation-delay:${(+dl + 1.2).toFixed(2)}s"><g transform="matrix(0.866 0.5 0 1 ${(o[0] - bw * 0.25).toFixed(1)} ${(o[1] - bw * 0.14).toFixed(1)})"><line x1="${(bw * 0.22).toFixed(1)}" y1="30" x2="${(bw * 0.22).toFixed(1)}" y2="52" stroke="${C.gray}" stroke-width="2"/><line x1="${(bw * 0.62).toFixed(1)}" y1="30" x2="${(bw * 0.62).toFixed(1)}" y2="44" stroke="${C.gray}" stroke-width="2"/><polygon points="${(bw * 0.15).toFixed(1)},-4 ${(bw * 0.35).toFixed(1)},-4 ${(bw * 0.5).toFixed(1)},30 0,30" fill="#ffffff" opacity=".06"/><rect width="${bw.toFixed(1)}" height="30" rx="2" fill="#f4f4f5" stroke="${C.gray}"/><rect width="${bw.toFixed(1)}" height="4" fill="${C.peri}"/>${t(8, 16, nm, { z: 10, f: 'm', c: C.bg })}${t(8, 26, nb, { z: 9, f: 'm', c: C.purple })}<rect x="${(bw * 0.18).toFixed(1)}" y="-6" width="5" height="3" fill="${C.mute}"/><rect x="${(bw * 0.7).toFixed(1)}" y="-6" width="5" height="3" fill="${C.mute}"/></g></g>`;
       if (front) { const base = P(bx, by, FW, FD, 0); g += t(base[0].toFixed(1), street + 40, new Date(p.t1).toLocaleString('en', { month: 'short', day: 'numeric', timeZone: 'UTC' }), { z: 10, f: 'm', c: C.mute, a: 'middle' }); }
     });
   });
@@ -401,7 +401,7 @@ async function chessSvg() {
   const W = 900, H = 300, S = 30, BX = 26, BY = 30, st = await j(`https://api.chess.com/pub/player/${CHESS}/stats`); let game = null;
   const arch = (await j(`https://api.chess.com/pub/player/${CHESS}/games/archives`))?.archives; for (const u of (arch || []).slice(-2).reverse()) { game = (await j(u))?.games?.at(-1) ?? null; if (game) break; }
   const fen = game?.fen ?? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', gl = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' }; let sq = '', cs = '';
-  for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) cs += `<rect x="${BX + c * S}" y="${BY + r * S}" width="${S}" height="${S}" fill="${(r + c) % 2 ? '#1b2140' : '#2a3263'}"/>`;
+  for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) cs += `<rect x="${BX + c * S}" y="${BY + r * S}" width="${S}" height="${S}" fill="${(r + c) % 2 ? '#1c1c1f' : '#2e2e33'}"/>`;
   fen.split(' ')[0].split('/').forEach((row, r) => { let c = 0; for (const ch of row) { if (/\d/.test(ch)) { c += +ch; continue; } const w = ch === ch.toUpperCase(); sq += `<text x="${BX + c * S + S / 2}" y="${BY + r * S + S * 0.77}" font-size="24" text-anchor="middle" fill="${w ? '#f2f3f7' : '#0b0d14'}" stroke="${w ? '#0b0d14' : '#f2f3f7'}" stroke-width=".5">${gl[ch.toLowerCase()]}</text>`; c++; } });
   const rt = (k) => st?.[`chess_${k}`]?.last?.rating ?? '-', rec = st?.chess_rapid?.record;
   const cols = [['rapid', rt('rapid')], ['blitz', rt('blitz')], ['bullet', rt('bullet')]].map(([l, v], i) => `${t(310 + i * 190, 100, String(v), { z: 44, f: 'h', w: 700 })}${t(310 + i * 190, 124, l, { z: 13, c: C.mute })}`).join('');
