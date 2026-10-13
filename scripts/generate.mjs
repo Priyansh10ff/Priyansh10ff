@@ -108,7 +108,8 @@ cards.sort((a, b) => b.merged - a.merged);
 const totals = cards.reduce((a, c) => ({ merged: a.merged + c.merged, open: a.open + c.open, closed: a.closed + c.closed }), { merged: 0, open: 0, closed: 0 });
 if (unmapped.length) console.log(`${unmapped.length} private repo(s) have no entry in config.json private_repos (run with --list-private locally to see names)`);
 if (process.argv.includes('--list-private')) console.log(unmapped.join('\n'));
-const prList = prs.map((it) => { const merged = !!it.pull_request?.merged_at, open = it.state === 'open'; return { repo: it.repository_url.split('/repos/')[1], merged, open, t0: Date.parse(it.created_at), t1: open ? Date.now() : Date.parse(it.closed_at) }; }).filter((p) => p.merged).sort((a, b) => a.t0 - b.t0);
+const prList = prs.map((it) => { const merged = !!it.pull_request?.merged_at, open = it.state === 'open'; return { repo: it.repository_url.split('/repos/')[1], num: it.number, merged, open, t0: Date.parse(it.created_at), t1: open ? Date.now() : Date.parse(it.closed_at) }; }).filter((p) => p.merged).sort((a, b) => a.t0 - b.t0);
+for (const [i, p] of prList.entries()) { const d = MOCK ? null : await jg(`https://api.github.com/repos/${p.repo}/pulls/${p.num}`); p.size = d ? d.additions + d.deletions : MOCK ? [38, 6, 120, 640, 220, 380][i % 6] : 40; }
 
 // ---------- LeetCode / Codeforces (cached: a failed fetch keeps the last good data) ----------
 const cachePath = path.join(root, 'data', 'cache.json'); fs.mkdirSync(path.dirname(cachePath), { recursive: true });
@@ -196,26 +197,17 @@ ${t(24, 88, '$', { z: 13, f: 'm', c: C.green })}${t(40, 88, `git log --author="$
 <g transform="rotate(2 ${862 - cw2 / 2} 356)"><rect x="${862 - cw2}" y="338" width="${cw2}" height="34" rx="17" fill="${C.orange}"/>${t(862 - cw2 + 20, 360, ct, { z: 13, f: 'h', w: 700, c: C.bg })}</g>`);
 }
 
-async function asciiSvg() {
-  const W = 900, f = ['jpg', 'jpeg', 'png', 'webp'].map((e) => path.join(root, 'assets', `photo.${e}`)).find((p) => fs.existsSync(p)); let lines = null; const cols = 120;
-  if (f) try {
-    const { default: sharp } = await import('sharp'); const m = await sharp(f).metadata(), rows = Math.round(cols * (m.height / m.width) * 0.52);
-    const { data } = await sharp(f).resize(cols, rows, { fit: 'fill' }).grayscale().normalize().raw().toBuffer({ resolveWithObject: true }); const ramp = " .'`^,:;Il!i><~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
-    lines = Array.from({ length: rows }, (_, y) => Array.from({ length: cols }, (_, x) => ramp[Math.min(ramp.length - 1, Math.floor((data[y * cols + x] / 256) * ramp.length))]).join(''));
-  } catch { lines = null; }
-  const head = `${win(W)}${t(84, 31, 'photo.txt', { z: 12, f: 'm', c: C.mute })}`;
-  if (!lines) return svg(W, 220, `${card(W, 220, C.navy)}${head}${t(450, 128, 'cat photo.txt', { z: 14, f: 'm', c: C.mute, a: 'middle' })}${t(450, 154, 'not generated yet: add assets/photo.jpg', { z: 12, f: 'm', c: C.dim, a: 'middle' })}`);
-  const fz = 6.6, lh = 7.6, x0 = (W - cols * fz * 0.6) / 2, H = Math.round(lines.length * lh + 84);
-  return svg(W, H, `${card(W, H, C.navy)}${head}${lines.map((l, i) => `<text class="l" x="${x0}" y="${78 + i * lh}" font-size="${fz}" fill="#c9d1f0" xml:space="preserve" style="white-space:pre;animation-delay:${(i * 0.012).toFixed(2)}s" font-family="${FF.m}">${esc(l)}</text>`).join('')}`, '.l{animation:f .5s ease-out backwards}@keyframes f{from{opacity:0}}');
-}
-
 const headerSvg = (n, title, desc) => { const pt = `${String(n).padStart(2, '0')} · ${desc}`, pw = Math.round(pt.length * (12 * 0.66 + 1.4) + 40), uw = Math.round(tw(title, 44, 'h')); return svg(900, 124, `${dots(900, 124)}<g transform="rotate(-2 20 34)"><rect x="8" y="18" width="${pw}" height="28" rx="14" fill="${C.peri}"/>${t(24, 37, pt, { z: 12, f: 'h', w: 700, ls: 1.4, c: C.bg })}</g>${t(8, 96, title, { z: 44, f: 'h', w: 700, ls: -1 })}<path d="M10 110 C${10 + uw * 0.3} 103 ${10 + uw * 0.7} 110 ${10 + uw} 106" fill="none" stroke="${C.peri}" stroke-width="2.4" stroke-linecap="round"/>`); };
 
 function aboutSvg() {
-  const rh = 56, nl = wrap(motto, 13), nh = 44 + nl.length * 34 + 16, H = Math.max(40 + about.length * rh, nh + 90);
-  const left = about.map((r, i) => { const y = 66 + i * rh; return `${i ? rule(28, y - 38, 590) : ''}<text x="28" y="${y}" font-size="26" font-family="${FF.e}">${r.e}</text>${t(78, y - 2, cut(r.t, 50), { z: 16 })}`; }).join('');
-  const note = motto ? `<g transform="rotate(-2 750 120)"><rect x="624" y="34" width="252" height="${nh}" rx="12" fill="${C.yellow}"/>${nl.map((l, i) => t(646, 82 + i * 34, l, { z: 26, f: 'h', w: 700, c: C.bg })).join('')}</g>` : '';
-  return svg(900, H, `${card(900, H)}${left}${note}`);
+  const f = ['webp', 'png', 'jpg', 'jpeg'].map((e) => path.join(root, 'assets', `photo.${e}`)).find((x) => fs.existsSync(x));
+  const W = 900, rx = f ? 370 : 28, rh = 50, ml = motto ? wrap(motto, 32) : [], lw = Math.max(0, ...ml.map((l) => tw(l, 18, 'h'))) + 44, lh = 30 + ml.length * 24;
+  const rowsEnd = 40 + about.length * rh, H = Math.max(f ? 340 : 0, rowsEnd + (motto ? lh + 44 : 10));
+  let g = card(W, H);
+  if (f) { const ext = path.extname(f).slice(1).replace('jpg', 'jpeg'); g += `<g class="p"><g transform="rotate(-4 180 ${H / 2})"><image href="data:image/${ext};base64,${fs.readFileSync(f).toString('base64')}" x="14" y="${(H - 330) / 2}" width="330" height="330"/></g></g>`; }
+  g += about.map((r, i) => { const y = 64 + i * rh; return `${i ? rule(rx, y - 32, 872) : ''}<text x="${rx}" y="${y}" font-size="24" font-family="${FF.e}">${r.e}</text>${t(rx + 44, y - 2, cut(r.t, Math.floor((872 - rx - 44) / 8.6)), { z: 16 })}`; }).join('');
+  if (motto) { const y0 = rowsEnd + 16; g += `<g class="n"><g transform="rotate(-2 ${rx + lw / 2} ${y0 + lh / 2})"><rect x="${rx}" y="${y0}" width="${lw}" height="${lh}" rx="10" fill="${C.yellow}" stroke="#ffffff" stroke-width="4"/>${ml.map((l, k) => t(rx + 22, y0 + 32 + k * 24, l, { z: 18, f: 'h', w: 700, c: C.bg })).join('')}</g></g>`; }
+  return svg(W, H, g, '.p{animation:u .8s ease-out backwards}.n{animation:o .5s ease-out .5s backwards}@keyframes u{from{opacity:0;transform:translateY(18px)}}@keyframes o{from{opacity:0}}');
 }
 
 function statsSvg() {
@@ -348,18 +340,44 @@ function langsSvg() {
 }
 
 function ossSvg() {
-  const W = 900, H = 340, L = 44, Rr = 856, MY = 262;
-  const head = `${t(28, 70, String(totals.merged), { z: 52, f: 'h', w: 700, c: C.peri })}${t(28 + tw(String(totals.merged), 52, 'h') + 14, 64, 'pull requests merged', { z: 16 })}${t(872, 64, `${cards.length} project${cards.length === 1 ? '' : 's'}`, { z: 12, f: 'm', c: C.mute, a: 'end' })}<line x1="28" y1="92" x2="872" y2="92" stroke="${C.line}"/>`;
-  if (!prList.length) return svg(W, 140, `${card(W, 140)}${head}${t(450, 124, 'merged pull requests appear here once the token can see them', { z: 12, f: 'm', c: C.mute, a: 'middle' })}`);
-  const tmin = prList[0].t0 - 7 * 864e5, tmax = Date.now(), X = (v) => L + ((v - tmin) / (tmax - tmin)) * (Rr - L); let g = `<line x1="${L}" y1="${MY}" x2="${Rr}" y2="${MY}" stroke="${C.gray}" stroke-width="2.5"/>`;
-  const d0 = new Date(tmin); d0.setUTCDate(1); d0.setUTCMonth(d0.getUTCMonth() + 1); const nm = Math.ceil((tmax - tmin) / 864e5 / 30), step = Math.max(1, Math.ceil(nm / 12));
-  for (let i = 0, d = new Date(d0); d.getTime() < tmax; d.setUTCMonth(d.getUTCMonth() + 1), i++) if (i % step === 0) { const x = X(d.getTime()); g += `<circle cx="${x.toFixed(1)}" cy="${MY}" r="7" fill="${C.card}" stroke="${C.gray}" stroke-width="2"/>${t(x.toFixed(1), MY + 28, upper(d.toLocaleString('en', { month: 'short', timeZone: 'UTC' })), { z: 10, f: 'm', c: C.mute, a: 'middle' })}`; }
-  const done = new Set(), lx = [];
-  prList.forEach((p, k) => { const x1 = X(p.t1) < L + 70 ? L + 70 : X(p.t1), x0 = Math.min(X(p.t0), x1 - 70), h = 52 + (k % 3) * 34, y = MY - h, col = p.merged ? C.peri : p.open ? C.orange : C.dim;
-    g += `<path d="M${x0.toFixed(1)} ${MY}C${(x0 + 14).toFixed(1)} ${MY} ${(x0 + 6).toFixed(1)} ${y} ${(x0 + 22).toFixed(1)} ${y}L${(x1 - 22).toFixed(1)} ${y}C${(x1 - 6).toFixed(1)} ${y} ${(x1 - 14).toFixed(1)} ${MY} ${x1.toFixed(1)} ${MY}" fill="none" stroke="${col}" stroke-width="2.2"${p.open ? ' stroke-dasharray="5 4"' : ''}/>`;
-    if (p.merged) g += `<circle cx="${x1.toFixed(1)}" cy="${MY}" r="9" fill="${C.peri}" stroke="${C.card}" stroke-width="3"/>`;
-    const mid = (x0 + x1) / 2; if (label[p.repo] && !done.has(p.repo) && lx.every((q) => Math.abs(q - mid) > 90)) { done.add(p.repo); lx.push(mid); g += t(mid.toFixed(1), y - 9, cut(label[p.repo], 16), { z: 10, f: 'm', c: C.mute, a: 'middle' }); } });
-  return svg(W, H, `${card(W, H)}${head}${g}${t(28, H - 12, 'grey line: my history · blue line: a pull request · filled dot: merged', { z: 11, f: 'm', c: C.dim })}`);
+  const W = 900, all = prList, list = all.slice(-14), n = list.length, two = n > 7, half = Math.ceil(n / 2), rows = two ? [list.slice(0, half), list.slice(half)] : [list];
+  const H = two ? 580 : 490, street = H - 96;
+  const head = `${t(28, 70, String(totals.merged), { z: 52, f: 'h', w: 700, c: C.peri })}${t(28 + tw(String(totals.merged), 52, 'h') + 14, 64, 'pull requests merged', { z: 16 })}${t(872, 64, `${cards.length} project${cards.length === 1 ? '' : 's'} · oldest to newest`, { z: 12, f: 'm', c: C.mute, a: 'end' })}<line x1="28" y1="92" x2="872" y2="92" stroke="${C.line}"/>`;
+  if (!n) return svg(W, 140, `${card(W, 140)}${head}${t(450, 124, 'merged pull requests appear here once the token can see them', { z: 12, f: 'm', c: C.mute, a: 'middle' })}`);
+  const c = 0.866, sn = 0.5, FW = 32, FD = 32, R = (i) => Math.abs(Math.sin(i * 12.9898) * 43758.5453) % 1;
+  const P = (bx, by, x, y, z = 0) => [bx + (x - y) * c, by + (x + y) * sn - z], pts = (a) => a.map((q) => q.map((v) => v.toFixed(1)).join(',')).join(' ');
+  const pal = [['#2b335c', '#1c2240', '#141931'], ['#33365a', '#21243f', '#171a2e'], ['#2a3a52', '#1b2638', '#131b29']];
+  let g = `${card(W, H)}${head}<rect x="16" y="${street}" width="${W - 32}" height="46" fill="#0f1224"/><rect x="16" y="${street - 5}" width="${W - 32}" height="5" fill="#1e2440"/>`;
+  for (let x = 28; x < W - 30; x += 40) g += `<rect x="${x}" y="${street + 22}" width="22" height="2" fill="${C.dim}"/>`;
+  let bills = '', idx = 0;
+  rows.forEach((row, ri) => {
+    const front = ri === rows.length - 1, per = row.length, span = 700, step = per > 1 ? Math.min(128, span / (per - 1)) : 0, x0 = 450 - ((per - 1) * step) / 2 - FD * c + (front ? 0 : 56), by = street - 8 - (FW + FD) * sn - (front ? 0 : 50);
+    row.forEach((p, j) => {
+      const i = idx++, bx = x0 + j * step + FD * c, Hb = Math.min(240, 56 + Math.log2(1 + p.size) * 17), col = pal[i % 3], dl = (i * 0.14).toFixed(2), seed = i * 97 + p.num;
+      const tiered = Hb > 130, h1 = tiered ? Math.round(Hb * 0.64) : Hb, ins = 6;
+      const box = (xa, ya, za, w, d, h, cl, win = true) => {
+        const A = P(bx, by, xa, ya, za), B = P(bx, by, xa + w, ya, za), C2 = P(bx, by, xa + w, ya + d, za), D = P(bx, by, xa, ya + d, za), u = (q) => [q[0], q[1] - h];
+        let o = `<polygon points="${pts([D, C2, u(C2), u(D)])}" fill="${cl[1]}"/><polygon points="${pts([B, C2, u(C2), u(B)])}" fill="${cl[2]}"/><polygon points="${pts([u(A), u(B), u(C2), u(D)])}" fill="${cl[0]}"/>`;
+        if (win) for (let z = za + 9; z < za + h - 7; z += 11) {
+          for (let x = xa + 4; x < xa + w - 4; x += 7) o += `<polygon class="w" style="animation-delay:${(+dl + 0.8 + (z - za) / 170).toFixed(2)}s" points="${pts([P(bx, by, x, ya + d, z), P(bx, by, x + 4, ya + d, z), P(bx, by, x + 4, ya + d, z + 6), P(bx, by, x, ya + d, z + 6)])}" fill="${R(seed + z * 3 + x) > 0.45 ? '#f3d38a' : '#232b4d'}"/>`;
+          for (let y = ya + 4; y < ya + d - 4; y += 7) o += `<polygon points="${pts([P(bx, by, xa + w, y, z), P(bx, by, xa + w, y + 4, z), P(bx, by, xa + w, y + 4, z + 6), P(bx, by, xa + w, y, z + 6)])}" fill="${R(seed + z * 5 + y + 1) > 0.6 ? '#b89f62' : '#1a2140'}"/>`;
+        }
+        return o + `<polyline points="${pts([u(D), u(C2), u(B)])}" fill="none" stroke="${C.gray}" stroke-width="1.1"/>`;
+      };
+      let b = box(0, 0, 0, FW, FD, h1, col), rz = h1, rx = 0, ry = 0, rw = FW, rd = FD;
+      if (tiered) { b += box(ins, ins, h1, FW - 2 * ins, FD - 2 * ins, Hb - h1, col); rz = Hb; rx = ins; ry = ins; rw = FW - 2 * ins; rd = FD - 2 * ins; }
+      b += box(rx + rw - 9, ry + 2, rz, 6, 6, 5, ['#4b5268', '#3a4157', '#2c3245'], false);
+      const an = P(bx, by, rx + 4, ry + 4, rz);
+      b += `<line x1="${an[0].toFixed(1)}" y1="${an[1].toFixed(1)}" x2="${an[0].toFixed(1)}" y2="${(an[1] - 20).toFixed(1)}" stroke="${C.mute}" stroke-width="1.1"/><circle class="bl" cx="${an[0].toFixed(1)}" cy="${(an[1] - 20).toFixed(1)}" r="2" fill="#ff5f56" style="animation-delay:${(i * 0.3).toFixed(1)}s"/>`;
+      g += `<g class="b" style="animation-delay:${dl}s">${b}</g>`;
+      const nm = cut(label[p.repo] || 'private', 16), nb = label[p.repo] ? `#${p.num} merged` : 'merged', bw = Math.max(nm.length * 6.1, nb.length * 5.5) + 18, o = P(bx, by, rx + 1, ry + rd - 3, rz + 50);
+      bills += `<g class="hb" style="animation-delay:${(+dl + 1.2).toFixed(2)}s"><g transform="matrix(0.866 0.5 0 1 ${(o[0] - bw * 0.25).toFixed(1)} ${(o[1] - bw * 0.14).toFixed(1)})"><line x1="${(bw * 0.22).toFixed(1)}" y1="30" x2="${(bw * 0.22).toFixed(1)}" y2="52" stroke="${C.gray}" stroke-width="2"/><line x1="${(bw * 0.62).toFixed(1)}" y1="30" x2="${(bw * 0.62).toFixed(1)}" y2="44" stroke="${C.gray}" stroke-width="2"/><polygon points="${(bw * 0.15).toFixed(1)},-4 ${(bw * 0.35).toFixed(1)},-4 ${(bw * 0.5).toFixed(1)},30 0,30" fill="#f3d38a" opacity=".08"/><rect width="${bw.toFixed(1)}" height="30" rx="2" fill="#efeadf" stroke="${C.gray}"/><rect width="${bw.toFixed(1)}" height="4" fill="${C.peri}"/>${t(8, 16, nm, { z: 10, f: 'm', c: C.bg })}${t(8, 26, nb, { z: 9, f: 'm', c: C.purple })}<rect x="${(bw * 0.18).toFixed(1)}" y="-6" width="5" height="3" fill="${C.mute}"/><rect x="${(bw * 0.7).toFixed(1)}" y="-6" width="5" height="3" fill="${C.mute}"/></g></g>`;
+      if (front) { const base = P(bx, by, FW, FD, 0); g += t(base[0].toFixed(1), street + 40, new Date(p.t1).toLocaleString('en', { month: 'short', day: 'numeric', timeZone: 'UTC' }), { z: 10, f: 'm', c: C.mute, a: 'middle' }); }
+    });
+  });
+  const more = all.length > 14 ? `+${all.length - 14} earlier · ` : '';
+  return svg(W, H, `${g}${bills}${t(28, H - 16, `${more}one building per merged PR · height = lines changed · billboard = repo and PR number`, { z: 11, f: 'm', c: C.dim })}`,
+    '.b{transform-box:fill-box;transform-origin:50% 100%;animation:rise 1s cubic-bezier(.2,.8,.2,1) backwards}.w{animation:on .25s ease-out backwards}.hb{animation:on .5s ease-out backwards}.bl{animation:bl 1.4s steps(1) infinite}@keyframes rise{from{transform:scaleY(0)}}@keyframes on{from{opacity:0}}@keyframes bl{50%{opacity:.15}}');
 }
 function ossCard(c) {
   const W = 440, H = 120, tt = c.merged + c.open + c.closed, bw = 396;
@@ -397,7 +415,7 @@ async function chessSvg() {
 const btn = (label, primary) => svg(214, 68, `<rect x="6" y="6" width="204" height="56" rx="14" fill="#000"/><rect x="1" y="1" width="204" height="56" rx="14" fill="${primary ? C.yellow : C.card}" stroke="${primary ? C.yellow : C.line}"/>${t(24, 36, upper(label), { z: 15, f: 'h', w: 700, c: primary ? C.bg : C.text, ls: 0.5 })}${arr(172, 22, 14, primary ? C.bg : C.peri)}`);
 
 // ---------- write ----------
-write('hero.svg', heroSvg()); write('ascii.svg', await asciiSvg());
+write('hero.svg', heroSvg());
 const nTools = Object.keys(stack).reduce((a, k) => a + stack[k].length, 0);
 const hasCP = !!(cfData || lcData), order = [['about', 'About', 'WHO'], ['activity', 'Activity', 'LIVE FROM GITHUB'], ['stack', 'Stack', `${nTools} ITEMS`], ['oss', 'Open source', `${totals.merged} MERGED`], ['projects', 'Projects', `${projs.length} SELECTED`], ...(hasCP ? [['cp', 'Problem solving', [lcData && 'LEETCODE', cfData && 'CODEFORCES'].filter(Boolean).join(' · ')]] : []), ['chess', 'Chess', 'CHESS.COM'], ['contact', 'Contact', 'FIND ME']];
 const HD = Object.fromEntries(order.map(([k, ti, de], i) => [k, [i + 1, ti, de]]));
@@ -417,11 +435,11 @@ const im = (f, alt, w = '100%') => `<img src="assets/${f}?v=${V}" width="${w}" a
 const pair = (a, fn) => { const o = []; for (let i = 0; i < a.length; i += 2) o.push(a.slice(i, i + 2).map((x, k) => fn(x, i + k)).join(' ')); return o.join('\n'); };
 const cw = contacts.length === 4 ? '23.4%' : '31.5%';
 const readme = [
-  lk(`https://github.com/${USER}`, im('hero.svg', `${cfg.name}, ${cfg.hero_lead}`)), im('ascii.svg', 'ASCII portrait'),
+  lk(`https://github.com/${USER}`, im('hero.svg', `${cfg.name}, ${cfg.hero_lead}`)), 
   im('hdr-about.svg', 'About'), im('about.svg', 'About me'),
   im('hdr-activity.svg', 'Activity'), im('stats.svg', 'GitHub stats'), lk(`https://github.com/${USER}`, im('heatmap.svg', 'Contribution heatmap')), lk(`https://github.com/${USER}`, im('ecg.svg', 'Monthly contributions')),
   im('hdr-stack.svg', 'Stack'), sk.map((k, i) => im(`stack-${i}.svg`, k)).join('\n') + (langs ? `\n${im('langs.svg', 'Languages')}` : ''),
-  im('hdr-oss.svg', 'Open source'), lk(`https://github.com/pulls?q=is%3Apr+author%3A${USER}+is%3Amerged`, im('oss.svg', 'Pull requests as a commit graph')), pair(cards, (c, i) => lk(c.link, im(`oss-${i}.svg`, `${c.title}, ${c.merged} merged`, '49%'))),
+  im('hdr-oss.svg', 'Open source'), lk(`https://github.com/pulls?q=is%3Apr+author%3A${USER}+is%3Amerged`, im('oss.svg', 'Merged pull requests as a city street')), pair(cards, (c, i) => lk(c.link, im(`oss-${i}.svg`, `${c.title}, ${c.merged} merged`, '49%'))),
   im('hdr-projects.svg', 'Projects'), (() => { const rows = []; for (let i = 0; i < projs.length; i += 2) { const pr = projs.slice(i, i + 2);
     rows.push(pr.map((p, k) => lk(p.url || (p.repo ? `https://github.com/${p.repo}` : ''), im(`proj-${i + k}.svg`, p.name, '49%'))).join(' '));
     rows.push(pr.map((p) => [p.repo ? lk(`https://github.com/${p.repo}`, im('btn-source.svg', `${p.name} source`, '24%')) : im('btn-none.svg', '', '24%'), p.url ? lk(p.url, im('btn-live.svg', `${p.name} live site`, '24%')) : im('btn-none.svg', '', '24%')].join(' ')).join(' ')); }
