@@ -49,11 +49,6 @@
   "extra_oss": [],
   "projects": [
     {
-      "name": "Patchwork",
-      "private": true,
-      "desc": "GitHub App that detects breaking changes in API changelogs and opens PRs with AI-generated patches."
-    },
-    {
       "name": "Interview Arena"
     },
     {
@@ -76,9 +71,6 @@
     },
     {
       "name": "git-profile-switcher"
-    },
-    {
-      "name": "Abhaya"
     }
   ],
   "x": "https://x.com/_Priyansh_10",
