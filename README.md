@@ -1,4 +1,4 @@
-<a href="https://github.com/Priyansh10ff"><img src="assets/hero.svg?v=c98d7426" width="100%" alt="Priyansh, Full-stack AI developer"></a>
+<a href="https://github.com/Priyansh10ff"><img src="assets/hero.svg?v=c98d7426" width="100%" alt="Priyansh"></a>
 <img src="assets/hdr-about.svg?v=c98d7426" width="100%" alt="About">
 <img src="assets/about.svg?v=c98d7426" width="100%" alt="About me">
 <img src="assets/hdr-activity.svg?v=c98d7426" width="100%" alt="Activity">
