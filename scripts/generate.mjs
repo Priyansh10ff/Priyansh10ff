@@ -189,7 +189,7 @@ function heroSvg() {
   const py = 124 + Math.max(1, commits.length) * 50 + 8;
   return svg(W, H, `${dots(W, H)}
 <g transform="rotate(-2 40 60)"><rect x="40" y="46" width="${pw}" height="32" rx="16" fill="${C.peri}"/><circle cx="59" cy="62" r="4.5" fill="${status[1]}" stroke="${C.bg}" stroke-width="1.5"/>${t(73, 67, sl, { z: 13, f: 'h', w: 700, ls: 1.5, c: C.bg })}</g>
-${t(38, 206, cfg.name, { z: 88, f: 'h', w: 700, ls: -3 })}${t(40, 262, cfg.hero_lead, { z: 28, f: 'h', w: 700 })}
+${t(38, cfg.hero_lead ? 206 : 232, cfg.name, { z: 88, f: 'h', w: 700, ls: -3 })}${cfg.hero_lead ? t(40, 262, cfg.hero_lead, { z: 28, f: 'h', w: 700 }) : ''}
 <g transform="translate(470 56)"><rect width="410" height="300" rx="18" fill="${C.navy}" stroke="${C.line}"/>${win(410)}${t(84, 31, `git log: ${USER.toLowerCase()}`, { z: 12, f: 'm', c: C.mute })}
 ${t(24, 88, '$', { z: 13, f: 'm', c: C.green })}${t(40, 88, `git log --author="${USER}" -3`, { z: 13, f: 'm' })}${cl}${t(24, py, '$', { z: 13, f: 'm', c: C.green })}<rect x="40" y="${py - 12}" width="8" height="15" fill="${C.mute}"><animate attributeName="opacity" values="1;1;0;0" dur="1.1s" repeatCount="indefinite"/></rect></g>
 <g transform="rotate(3 ${880 - mw / 2} 56)"><rect x="${880 - mw}" y="38" width="${mw}" height="36" rx="18" fill="${C.lav}"/><circle cx="${880 - mw + 22}" cy="56" r="7" fill="${C.purple}"/>${t(880 - mw + 36, 62, mt, { z: 13, f: 'h', w: 700, ls: 1, c: C.purple })}</g>
@@ -435,7 +435,7 @@ const im = (f, alt, w = '100%') => `<img src="assets/${f}?v=${V}" width="${w}" a
 const pair = (a, fn) => { const o = []; for (let i = 0; i < a.length; i += 2) o.push(a.slice(i, i + 2).map((x, k) => fn(x, i + k)).join(' ')); return o.join('\n'); };
 const cw = contacts.length === 4 ? '23.4%' : '31.5%';
 const readme = [
-  lk(`https://github.com/${USER}`, im('hero.svg', `${cfg.name}, ${cfg.hero_lead}`)), 
+  lk(`https://github.com/${USER}`, im('hero.svg', cfg.hero_lead ? `${cfg.name}, ${cfg.hero_lead}` : cfg.name)), 
   im('hdr-about.svg', 'About'), im('about.svg', 'About me'),
   im('hdr-activity.svg', 'Activity'), im('stats.svg', 'GitHub stats'), lk(`https://github.com/${USER}`, im('heatmap.svg', 'Contribution heatmap')), lk(`https://github.com/${USER}`, im('ecg.svg', 'Monthly contributions')),
   im('hdr-stack.svg', 'Stack'), sk.map((k, i) => im(`stack-${i}.svg`, k)).join('\n') + (langs ? `\n${im('langs.svg', 'Languages')}` : ''),
