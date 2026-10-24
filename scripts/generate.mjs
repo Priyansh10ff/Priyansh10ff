@@ -422,7 +422,7 @@ const HD = Object.fromEntries(order.map(([k, ti, de], i) => [k, [i + 1, ti, de]]
 for (const [k, [n, ti, de]] of Object.entries(HD)) write(`hdr-${k}.svg`, headerSvg(n, ti, de));
 write('about.svg', aboutSvg()); write('stats.svg', statsSvg()); write('heatmap.svg', heatSvg()); write('ecg.svg', ecgSvg());
 const sk = Object.keys(stack); sk.forEach((k, i) => write(`stack-${i}.svg`, stackSvg(k, stack[k]))); const langs = langsSvg(); if (langs) write('langs.svg', langs);
-write('oss.svg', ossSvg()); cards.forEach((c, i) => write(`oss-${i}.svg`, ossCard(c)));
+write('oss.svg', ossSvg());
 projs.forEach((p, i) => write(`proj-${i}.svg`, projCard(p)));
 write('btn-source.svg', pbtn('SOURCE', false)); write('btn-live.svg', pbtn('LIVE', true)); write('btn-none.svg', svg(214, 56, '')); write('proj-note.svg', noteSvg());
 if (lcData) write('lc.svg', lcSvg(lcData)); if (cfData) write('cf.svg', cfSvg(cfData));
@@ -439,7 +439,7 @@ const readme = [
   im('hdr-about.svg', 'About'), im('about.svg', 'About me'),
   im('hdr-activity.svg', 'Activity'), im('stats.svg', 'GitHub stats'), lk(`https://github.com/${USER}`, im('heatmap.svg', 'Contribution heatmap')), lk(`https://github.com/${USER}`, im('ecg.svg', 'Monthly contributions')),
   im('hdr-stack.svg', 'Stack'), sk.map((k, i) => im(`stack-${i}.svg`, k)).join('\n') + (langs ? `\n${im('langs.svg', 'Languages')}` : ''),
-  im('hdr-oss.svg', 'Open source'), lk(`https://github.com/pulls?q=is%3Apr+author%3A${USER}+is%3Amerged`, im('oss.svg', 'Merged pull requests as a city street')), pair(cards, (c, i) => lk(c.link, im(`oss-${i}.svg`, `${c.title}, ${c.merged} merged`, '49%'))),
+  im('hdr-oss.svg', 'Open source'), lk(`https://github.com/pulls?q=is%3Apr+author%3A${USER}+is%3Amerged`, im('oss.svg', 'Merged pull requests as a city street')),
   im('hdr-projects.svg', 'Projects'), (() => { const rows = []; for (let i = 0; i < projs.length; i += 2) { const pr = projs.slice(i, i + 2);
     rows.push(pr.map((p, k) => lk(p.url || (p.repo ? `https://github.com/${p.repo}` : ''), im(`proj-${i + k}.svg`, p.name, '49%'))).join(' '));
     rows.push(pr.map((p) => [p.repo ? lk(`https://github.com/${p.repo}`, im('btn-source.svg', `${p.name} source`, '24%')) : im('btn-none.svg', '', '24%'), p.url ? lk(p.url, im('btn-live.svg', `${p.name} live site`, '24%')) : im('btn-none.svg', '', '24%')].join(' ')).join(' ')); }
