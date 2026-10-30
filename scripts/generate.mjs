@@ -14,7 +14,7 @@ const TOKEN = process.env.GH_TOKEN || '', MOCK = !!process.env.MOCK;
 const C = { bg: '#09090a', card: '#131315', navy: '#0f0f11', line: '#232326', text: '#f4f4f5', mute: '#8e8e93', dim: '#3f3f46', peri: '#e4e4e7', orange: '#eb9b3a', yellow: '#f4f4f5', lav: '#d4d4d8', purple: '#e5484d', red: '#e5484d', green: '#5fd68a', gray: '#52525b', sig: '#e5484d' };
 const RAMP = ['#1a1a1f', '#26382d', '#1f7a45', '#27d067', '#b44cff'], PAL = ['#f4f4f5', '#a1a1aa', '#71717a', '#e5484d', '#52525b', '#d4d4d8', '#3f3f46'];
 const FF = { h: "SG,'Space Grotesk',sans-serif", b: "PJ,'Plus Jakarta Sans',sans-serif", m: "JBM,'JetBrains Mono',monospace", hc: "BC,'Barlow Condensed',sans-serif", e: "JBM,'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',monospace" };
-const FONTS = { SG: [['700', 'sg-700.woff2']], PJ: [['400', 'pj-400.woff2']], JBM: [['400', 'jbm-400.woff2']], BC: [['700', 'bc-700.woff2']] };
+const FONTS = { PH: [['400', 'ph-400.woff2']], NU: [['400', 'nu-400.woff2']] };
 const ICONS = fs.existsSync(path.join(root, 'fonts/icons.json')) ? JSON.parse(fs.readFileSync(path.join(root, 'fonts/icons.json'), 'utf8')) : {};
 const UA = { 'User-Agent': `${USER}-profile-readme (github.com/${USER})` };
 const headers = { ...UA, Accept: 'application/vnd.github+json', ...(TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {}) };
@@ -173,280 +173,219 @@ for (const [i, p] of (cfg.projects || []).slice(0, 10).entries()) {
 }
 if (missing.length) console.log(`no GitHub repo found for: ${missing.join(', ')} (add "repo": "owner/name" to that project in config.json)`);
 
-// ---------- assets ----------
+// ---------- assets (notebook style) ----------
 for (const f of fs.readdirSync(OA)) if (f.endsWith('.svg')) fs.unlinkSync(path.join(OA, f));
-const upper = (s) => String(s).toUpperCase();
-const arr = (x, y, z, col = C.text) => `<path d="M${x} ${y + z}L${x + z} ${y}M${x + z * 0.2} ${y}H${x + z}V${y + z * 0.8}" fill="none" stroke="${col}" stroke-width="1.6" stroke-linecap="round"/>`;
-const K = { bg: '#0b0b0d', rule: '#2a2a31', text: '#f2f1ec', mute: '#86868f', dim: '#4a4a52', purple: '#b44cff', green: '#27d067', yellow: '#f6d32d', red: '#ff4d4d' };
-const th = (x, y, s, o = {}) => t(x, y, s, { f: 'm', c: K.text, ...o });
-const rule = (x1, y, x2, col = C.line, w = 1) => `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${col}" stroke-width="${w}"/>`;
-const win = (w) => `<circle cx="26" cy="26" r="5.5" fill="#ff5f56"/><circle cx="44" cy="26" r="5.5" fill="#ffbd2e"/><circle cx="62" cy="26" r="5.5" fill="#27c93f"/><line x1="0" y1="52" x2="${w}" y2="52" stroke="${C.line}"/>`;
+const N = { ink: '#2b2724', paper: '#f6f0e3', card: '#fffdf8', line: '#d9d0bc', hole: '#e6dcc6', mute: '#7a7064', rust: '#a2412c', red: '#d9453a', green: '#3f7a3a', hl: '#f6e3a1', sticky: '#fff6c8', blue: '#c6d6e8' };
+const CF_COL = { newbie: '#7a7064', pupil: '#3f7a3a', specialist: '#1f8a80', expert: '#2c4bbf', 'candidate master': '#8a3fb0', master: '#c06a12', 'international master': '#c06a12', grandmaster: '#c0392b', 'international grandmaster': '#c0392b', 'legendary grandmaster': '#c0392b', unrated: '#7a7064' };
+const cap = (x) => String(x).replace(/\b\w/g, (m) => m.toUpperCase());
+const TABC = ['#c8ddb5', '#f4c9a8', '#f6e3a1', '#c6d6e8', '#e3cfe0'];
+const HW = "PH,'Patrick Hand',cursive", BODY = "NU,'Nunito',sans-serif", EMO = "NU,'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif";
+const T = (x, y, s, o = {}) => `<text x="${typeof x === 'number' ? x.toFixed(1) : x}" y="${typeof y === 'number' ? y.toFixed(1) : y}" font-size="${o.z || 16}" fill="${o.c || N.ink}"${o.a ? ` text-anchor="${o.a}"` : ''} font-family="${o.b ? BODY : HW}">${esc(s)}</text>`;
+const tw2 = (s, z, b) => String(s).length * z * (b ? 0.53 : 0.44);
+const FILT = `<filter id="r" x="-3%" y="-3%" width="106%" height="106%"><feTurbulence type="fractalNoise" baseFrequency=".03" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="2.2"/></filter>`;
+const sheet = (w, h) => `<defs>${FILT}</defs><rect x="12" y="12" width="${w - 18}" height="${h - 18}" rx="16" fill="${N.ink}"/><g filter="url(#r)"><rect x="4" y="4" width="${w - 18}" height="${h - 18}" rx="16" fill="${N.paper}" stroke="${N.ink}" stroke-width="2.2"/></g>` + Array.from({ length: Math.max(0, Math.floor((h - 50) / 44)) }, (_, i) => `<circle cx="24" cy="${44 + i * 44}" r="6.5" fill="${N.hole}" stroke="${N.line}"/>`).join('');
+const tape = (x, y, w, rot, col) => `<rect x="${x}" y="${y}" width="${w}" height="16" fill="${col}" opacity=".85" transform="rotate(${rot} ${x + w / 2} ${y + 8})"/>`;
+const hl = (x, y, w, col = N.hl) => `<path d="M${x} ${y} q${w / 2} 5 ${w} -2" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round" opacity=".9"/>`;
+const paperBox = (x, y, w, h, fill = N.card, rot = 0) => `<g transform="rotate(${rot} ${x + w / 2} ${y + h / 2})" filter="url(#r)"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${fill}" stroke="${N.ink}" stroke-width="2"/></g>`;
+const arrowN = (x, y, z, col = N.ink) => `<path d="M${x} ${y + z}L${x + z} ${y}M${x + z * 0.25} ${y}H${x + z}V${y + z * 0.75}" fill="none" stroke="${col}" stroke-width="2" stroke-linecap="round"/>`;
+const icoN = (name, x, y, s) => (ICONS[name.toLowerCase()] ? `<path transform="translate(${x} ${y}) scale(${s / 24})" d="${ICONS[name.toLowerCase()]}" fill="${N.ink}"/>` : '');
+const clip2 = (s, n, k) => { const l = wrap(s, n); return l.length > k ? [...l.slice(0, k - 1), cut(l.slice(k - 1).join(' '), n)] : l; };
+const md = (d) => new Date(d).toLocaleString('en', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 
-function heroSvg() {
-  const W = 900, H = 420, sl = upper(status[0]), pw = Math.round(sl.length * (13 * 0.66 + 1.5) + 62);
-  const mt = `${totals.merged} MERGED`, mw = Math.round(mt.length * (13 * 0.66 + 1) + 58), rt = `${nRepos} public repos`, rw = Math.round(tw(rt, 13, 'h') + 44), ct = `${fmt(contribs)} contributions`, cw2 = Math.round(tw(ct, 13, 'h') + 44);
-  const cl = commits.length ? commits.map((c, i) => `${t(24, 124 + i * 50, c.sha, { z: 13, f: 'm', c: C.yellow })}${t(86, 124 + i * 50, cut(c.msg, 36), { z: 13, f: 'm' })}${t(86, 142 + i * 50, `${cut(c.repo, 18)} · ${c.ago}`, { z: 11, f: 'm', c: C.mute })}`).join('') : t(24, 124, 'fatal: no public commits found', { z: 13, f: 'm', c: C.red });
-  const py = 124 + Math.max(1, commits.length) * 50 + 8;
-  return svg(W, H, `${dots(W, H)}
-<g transform="rotate(-2 40 60)"><rect x="40" y="46" width="${pw}" height="32" rx="16" fill="${C.peri}"/><circle cx="59" cy="62" r="4.5" fill="${status[1]}" stroke="${C.bg}" stroke-width="1.5"/>${t(73, 67, sl, { z: 13, f: 'h', w: 700, ls: 1.5, c: C.bg })}</g>
-${t(38, cfg.hero_lead ? 206 : 232, cfg.name, { z: 88, f: 'h', w: 700, ls: -3 })}${cfg.hero_lead ? t(40, 262, cfg.hero_lead, { z: 28, f: 'h', w: 700 }) : ''}
-<g transform="translate(470 56)"><rect width="410" height="300" rx="18" fill="${C.navy}" stroke="${C.line}"/>${win(410)}${t(84, 31, `git log: ${USER.toLowerCase()}`, { z: 12, f: 'm', c: C.mute })}
-${t(24, 88, '$', { z: 13, f: 'm', c: C.green })}${t(40, 88, `git log --author="${USER}" -3`, { z: 13, f: 'm' })}${cl}${t(24, py, '$', { z: 13, f: 'm', c: C.green })}<rect x="40" y="${py - 12}" width="8" height="15" fill="${C.mute}"><animate attributeName="opacity" values="1;1;0;0" dur="1.1s" repeatCount="indefinite"/></rect></g>
-<g transform="rotate(3 ${880 - mw / 2} 56)"><rect x="${880 - mw}" y="38" width="${mw}" height="36" rx="18" fill="${C.lav}"/><circle cx="${880 - mw + 22}" cy="56" r="7" fill="${C.purple}"/>${t(880 - mw + 36, 62, mt, { z: 13, f: 'h', w: 700, ls: 1, c: C.purple })}</g>
-<g transform="rotate(-2 560 356)"><rect x="486" y="338" width="${rw}" height="34" rx="17" fill="${C.bg}" stroke="${C.line}"/><circle cx="504" cy="355" r="4" fill="${C.sig}"/>${t(516, 360, rt, { z: 13, f: 'h', w: 700 })}</g>
-<g transform="rotate(2 ${862 - cw2 / 2} 356)"><rect x="${862 - cw2}" y="338" width="${cw2}" height="34" rx="17" fill="${C.lav}"/>${t(862 - cw2 + 20, 360, ct, { z: 13, f: 'h', w: 700, c: C.bg })}</g>`);
+function heroN() {
+  const W = 900, H = 416, now = new Date(), day = `${now.toLocaleString('en', { weekday: 'long', timeZone: 'Asia/Kolkata' })}, ${now.toLocaleString('en', { day: 'numeric', timeZone: 'Asia/Kolkata' })} ${now.toLocaleString('en', { month: 'short', timeZone: 'Asia/Kolkata' })}`;
+  let g = sheet(W, H) + `<circle cx="72" cy="52" r="17" fill="none" stroke="${N.ink}" stroke-width="2"/>${T(72, 59, cfg.name[0], { z: 20, a: 'middle' })}${T(98, 60, `${cfg.name.toLowerCase()}.`, { z: 30 })}`;
+  g += T(58, 122, day, { z: 46 }) + T(66 + tw2(day, 46), 120, `${fmt(contribs)} contributions in the last year`, { z: 15, b: 1, c: N.mute });
+  g += `<circle cx="850" cy="60" r="24" fill="${N.hl}" stroke="${N.ink}" stroke-width="2"/><path d="M836 75 q14 9 28 -5" fill="none" stroke="#e0c66e" stroke-width="5"/>`;
+  g += paperBox(58, 150, 560, 210, N.card, -0.6) + tape(90, 140, 70, -6, TABC[1]) + T(80, 190, 'Dear diary,', { z: 24 });
+  if (commits.length) commits.forEach((c, i) => { const y = 228 + i * 42; g += `<line x1="80" y1="${y + 9}" x2="596" y2="${y + 9}" stroke="${N.line}"/>${T(80, y, c.sha, { z: 12, b: 1, c: N.mute })}${T(146, y, cut(c.msg, 40), { z: 19 })}${T(596, y, `${cut(c.repo, 16)} · ${c.ago}`, { z: 12, b: 1, c: N.mute, a: 'end' })}`; });
+  else g += T(80, 232, 'nothing new to report yet', { z: 19, c: N.mute });
+  g += `<g transform="rotate(2 755 255)">${paperBox(650, 160, 210, 190, N.sticky)}${tape(718, 150, 80, 3, TABC[3])}${T(672, 198, 'right now', { z: 24 })}<circle cx="678" cy="225" r="5" fill="${status[1]}"/>${T(690, 231, status[0].toLowerCase(), { z: 17 })}${T(672, 262, `${totals.merged} PRs merged`, { z: 19 })}${T(672, 290, `${nRepos} public repos`, { z: 19 })}${T(672, 320, `streak ${cur}d, best ${best}d`, { z: 17, c: N.rust })}</g>`;
+  return svg(W, H, g + `<path d="M60 386 q40 -8 80 0 t80 0" fill="none" stroke="${N.rust}" stroke-width="2"/>${T(232, 390, 'turn the page', { z: 17 })}`);
 }
 
-const headerSvg = (n, title, desc) => { const pt = `${String(n).padStart(2, '0')} · ${desc}`, pw = Math.round(pt.length * (12 * 0.66 + 1.4) + 40), uw = Math.round(tw(title, 44, 'h')); return svg(900, 124, `${dots(900, 124)}<g transform="rotate(-2 20 34)"><rect x="8" y="18" width="${pw + 14}" height="28" rx="14" fill="${C.peri}"/><circle cx="23" cy="32" r="4" fill="${C.sig}"/>${t(36, 37, pt, { z: 12, f: 'h', w: 700, ls: 1.4, c: C.bg })}</g>${t(8, 96, title, { z: 44, f: 'h', w: 700, ls: -1 })}<path d="M10 110 C${10 + uw * 0.3} 103 ${10 + uw * 0.7} 110 ${10 + uw} 106" fill="none" stroke="${C.sig}" stroke-width="2.4" stroke-linecap="round"/>`); };
+const tabSvg = (name, i) => { const w = Math.round(tw2(name, 21) + 38); return [w, svg(w + 6, 50, `<defs>${FILT}</defs><path d="M3 49 V14 q0 -9 9 -9 H${w - 6} q9 0 9 9 V49" fill="${N.ink}" transform="translate(3 0)"/><g filter="url(#r)"><path d="M2 48 V12 q0 -9 9 -9 H${w - 9} q9 0 9 9 V48 Z" fill="${TABC[i % 5]}" stroke="${N.ink}" stroke-width="2"/></g>${T(w / 2, 34, name, { z: 21, a: 'middle' })}`)]; };
+const hdrSvg = (title, note, i) => { const w = Math.round(tw2(title, 36) + (note ? tw2(note, 14, 1) + 30 : 0) + 56); return [w, svg(w + 8, 76, `<defs>${FILT}</defs><path d="M8 75 V20 q0 -12 12 -12 H${w - 8} q12 0 12 12 V75" fill="${N.ink}" transform="translate(4 0)"/><g filter="url(#r)"><path d="M4 74 V18 q0 -12 12 -12 H${w - 12} q12 0 12 12 V74 Z" fill="${TABC[i % 5]}" stroke="${N.ink}" stroke-width="2.2"/></g>${T(26, 54, title, { z: 36 })}${note ? T(26 + tw2(title, 36) + 18, 52, note, { z: 14, b: 1, c: '#4a443d' }) : ''}`)]; };
+const topSvg = () => svg(170, 46, `<defs>${FILT}</defs><g filter="url(#r)"><rect x="3" y="3" width="160" height="36" rx="8" fill="${N.paper}" stroke="${N.ink}" stroke-width="2"/></g><path d="M30 30 V14 M23 21 L30 13 L37 21" fill="none" stroke="${N.ink}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>${T(48, 28, 'back to top', { z: 19 })}`);
 
-function aboutSvg() {
-  const f = ['webp', 'png', 'jpg', 'jpeg'].map((e) => path.join(root, 'assets', `photo.${e}`)).find((x) => fs.existsSync(x));
-  const W = 900, rx = f ? 370 : 28, rh = 50, ml = motto ? wrap(motto, 32) : [], lw = Math.max(0, ...ml.map((l) => tw(l, 18, 'h'))) + 44, lh = 30 + ml.length * 24;
-  const rowsEnd = 40 + about.length * rh, H = Math.max(f ? 340 : 0, rowsEnd + (motto ? lh + 44 : 10));
-  let g = card(W, H);
-  if (f) { const ext = path.extname(f).slice(1).replace('jpg', 'jpeg'); g += `<g class="p"><g transform="rotate(-4 180 ${H / 2})"><image href="data:image/${ext};base64,${fs.readFileSync(f).toString('base64')}" x="14" y="${(H - 330) / 2}" width="330" height="330"/></g></g>`; }
-  g += about.map((r, i) => { const y = 64 + i * rh; return `${i ? rule(rx, y - 32, 872) : ''}<text x="${rx}" y="${y}" font-size="24" font-family="${FF.e}">${r.e}</text>${t(rx + 44, y - 2, cut(r.t, Math.floor((872 - rx - 44) / 8.6)), { z: 16 })}`; }).join('');
-  if (motto) { const y0 = rowsEnd + 16; g += `<g class="n"><g transform="rotate(-2 ${rx + lw / 2} ${y0 + lh / 2})"><rect x="${rx}" y="${y0}" width="${lw}" height="${lh}" rx="10" fill="${C.yellow}" stroke="#ffffff" stroke-width="4"/>${ml.map((l, k) => t(rx + 22, y0 + 32 + k * 24, l, { z: 18, f: 'h', w: 700, c: C.bg })).join('')}</g></g>`; }
-  return svg(W, H, g, '.p{animation:u .8s ease-out backwards}.n{animation:o .5s ease-out .5s backwards}@keyframes u{from{opacity:0;transform:translateY(18px)}}@keyframes o{from{opacity:0}}');
+function aboutN() {
+  const rh = 50, H = Math.max(76 + about.length * rh, 290), W = 900;
+  let g = sheet(W, H);
+  for (let y = 70; y < H - 20; y += 25) g += `<line x1="52" y1="${y}" x2="600" y2="${y}" stroke="${N.blue}" stroke-opacity=".6"/>`;
+  g += `<line x1="96" y1="20" x2="96" y2="${H - 20}" stroke="${N.red}" stroke-opacity=".35"/>`;
+  about.forEach((r, i) => { const y = 72 + i * rh; g += `<text x="58" y="${y}" font-size="22" font-family="${EMO}">${r.e}</text>${T(108, y - 2, cut(r.t, 52), { z: 22 })}`; });
+  if (motto) { const nl = wrap(motto, 15); g += `<g transform="rotate(-3 745 ${H / 2})">${paperBox(632, H / 2 - 20 - nl.length * 17, 230, 50 + nl.length * 34, N.sticky)}${tape(710, H / 2 - 30 - nl.length * 17, 76, -4, TABC[0])}${nl.map((l, k) => T(654, H / 2 + 14 - nl.length * 17 + k * 34, l, { z: 28 })).join('')}</g>`; }
+  return svg(W, H, g);
 }
 
-function statsSvg() {
-  const cols = [['PUBLIC REPOS', nRepos, 'owned by me'], ['CONTRIBUTIONS', fmt(contribs), 'last 12 months'], ['MERGED PRS', totals.merged, `${cards.length} projects`], ['FOLLOWERS', nFollowers, 'on github']];
-  return svg(900, 170, `${card(900, 170)}${cols.map(([l, v, h], i) => { const x = 28 + i * 214; return `${rule(x, 30, x + 190)}${t(x, 56, l, { z: 11, f: 'm', c: C.mute, ls: 1.5 })}${t(x, 112, String(v), { z: 52, f: 'h', w: 700 })}${t(x, 140, h, { z: 13, c: C.mute })}`; }).join('')}`);
+function statsN() {
+  const items = [[nRepos, 'public repos', 'owned by me'], [fmt(contribs), 'contributions', 'last 12 months'], [totals.merged, 'PRs merged', `${cards.length} projects`], [nFollowers, 'followers', 'on github']];
+  let g = sheet(900, 200);
+  items.forEach(([v, l, h], i) => { const x = 60 + i * 204, rot = i % 2 ? 1.2 : -1.2; g += `<g transform="rotate(${rot} ${x + 92} 100)">${paperBox(x, 40, 184, 126, N.card)}${tape(x + 60, 32, 64, rot * 3, TABC[i])}${T(x + 18, 104, String(v), { z: 46 })}${T(x + 18, 130, l, { z: 14, b: 1 })}${T(x + 18, 152, h, { z: 15, c: N.mute })}</g>`; });
+  return svg(900, 200, g);
 }
 
-const CAR = ['wwww..........................', 'w..w..........hhh.............', 'w..w.....bbbbbhyh.............', 'w...bbbbbbbbbbbyybh...........', 'w...bssssssssssssbbbbbbbbbb...', '...tttt..bbbbbbbbbb.tttt..bnn.', '..tttttt.bbbbbbbbbbtttttt.....', '..ttrrtt.ffffffffffttrrtt..ww.', '..ttrrtt...........ttrrtt.www.', '..tttttt...........tttttt.www.', '...tttt.............tttt......'];
-const LIVERIES = { 'purple-sector': { b: '#f2f1ec', s: '#b44cff', w: '#b44cff', h: '#4a4a52', y: '#27d067', f: '#0b0b0d', n: '#b44cff' }, periwinkle: { b: '#8c9eff', s: '#f2f3f7', w: '#2a3263', h: '#4b5268', y: '#f3d34a', f: '#0b0d14', n: '#eb9b3a' }, 'night-shift': { b: '#3a4157', s: '#27d067', w: '#b44cff', h: '#8b90a0', y: '#f6d32d', f: '#0b0b0d', n: '#27d067' } };
-const carSprite = (lv, p) => { let o = ''; CAR.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '.') return; const col = ch === 't' ? '#2c2c34' : ch === 'r' ? '#8b90a0' : lv[ch]; o += `<rect x="${(x * p).toFixed(1)}" y="${(y * p).toFixed(1)}" width="${p}" height="${p}" fill="${col}"/>`; })); return o; };
-
-function heatSvg() {
-  const W = 900, H = 392, X0 = 54, Y0 = 182, S = 12, G = 3, P = S + G, LT = 3.5, max = Math.max(1, ...days.map((d) => d.contributionCount));
-  const lvl = (c) => (c === 0 ? 0 : c / max <= 0.25 ? 1 : c / max <= 0.5 ? 2 : c / max <= 0.75 ? 3 : 4), bestDay = days.reduce((b, d) => (d.contributionCount > (b?.contributionCount ?? -1) ? d : b), null);
-  const pos = {}; weeks.forEach((w, ci) => w.contributionDays.forEach((d) => { pos[d.date] = [X0 + ci * P, Y0 + d.weekday * P, ci]; }));
-  let g = `${card(W, H)}${th(24, 78, fmt(contribs), { z: 76, f: 'hc', w: 700 })}${th(26, 102, 'CONTRIBUTIONS, LAST 12 MONTHS', { z: 11, c: K.mute, ls: 1.5 })}`;
-  g += `${th(876, 78, `${cur}D`, { z: 76, f: 'hc', w: 700, a: 'end' })}${th(876, 102, 'CURRENT STREAK', { z: 11, c: K.mute, a: 'end', ls: 1.5 })}${th(690, 78, `${best}D`, { z: 76, f: 'hc', w: 700, a: 'end' })}${th(690, 102, 'LONGEST STREAK', { z: 11, c: K.mute, a: 'end', ls: 1.5 })}`;
-  g += `<rect x="375" y="22" width="150" height="40" rx="8" fill="${K.bg}" stroke="${K.rule}"/>` + [0, 1, 2, 3, 4].map((i) => `<circle cx="${395 + i * 27.5}" cy="42" r="9" fill="#2a2a31"><animate attributeName="fill" values="#2a2a31;#ff3b30;#2a2a31" keyTimes="0;${((0.4 + i * 0.5) / LT).toFixed(3)};${(3.1 / LT).toFixed(3)}" dur="${LT}s" calcMode="discrete" fill="freeze"/></circle>`).join('');
-  const act = days.slice(-365).filter((d) => d.contributionCount > 0).length;
-  g += th(450, 92, `LAP ${act} / 365`, { z: 13, a: 'middle', ls: 1 }) + rule(0, 122, W, K.rule);
-  if (weeks.length) {
-    const n = weeks.length, cutA = Math.floor(n / 3), cutB = Math.floor((2 * n) / 3), secs = [[0, cutA - 1], [cutA, cutB - 1], [cutB, n - 1]].map(([a, b]) => ({ a, b, t: weeks.slice(a, b + 1).flatMap((w) => w.contributionDays).reduce((s, d) => s + d.contributionCount, 0) }));
-    const bt = Math.max(...secs.map((s) => s.t)); secs.forEach((s, k) => { s.col = s.t === bt ? K.purple : k && s.t < secs[k - 1].t ? K.yellow : K.green; });
-    secs.forEach((s, k) => { const x = X0 + s.a * P; g += `<rect x="${x}" y="134" width="${(s.b - s.a + 1) * P - 3}" height="6" fill="${s.col}"/>${th(x, 156, `S${k + 1}  ${fmt(s.t)}`, { z: 10, c: K.mute, ls: 1 })}`; });
-  }
-  let months = '', lastM = -1; const marks = [];
-  weeks.forEach((w, ci) => { const m = new Date(w.contributionDays[0].date + 'T00:00:00Z').getUTCMonth(); if (m !== lastM) { marks.push([ci, m]); lastM = m; } });
+function heatN() {
+  const W = 900, H = 420, X0 = 66, Y0 = 176, P = 14.2, LT = 3.5, max = Math.max(1, ...days.map((d) => d.contributionCount));
+  const RA = [N.paper, '#d7e6c7', '#a9cc8e', '#6fa85a', '#b694d6'], lvl = (c) => (c === 0 ? 0 : c / max <= 0.25 ? 1 : c / max <= 0.5 ? 2 : c / max <= 0.75 ? 3 : 4);
+  const bestDay = days.reduce((b, d) => (d.contributionCount > (b?.contributionCount ?? -1) ? d : b), null), pos = {};
+  weeks.forEach((w, ci) => w.contributionDays.forEach((d) => { pos[d.date] = [X0 + ci * P, Y0 + d.weekday * P]; }));
+  let g = sheet(W, H) + T(58, 76, fmt(contribs), { z: 44 }) + T(60, 100, 'contributions, last 12 months', { z: 13, b: 1, c: N.mute });
+  g += [0, 1, 2, 3, 4].map((i) => `<circle cx="${396 + i * 27}" cy="52" r="10" fill="${N.paper}" stroke="${N.ink}" stroke-width="2"><animate attributeName="fill" values="${N.paper};${N.red};${N.paper}" keyTimes="0;${((0.4 + i * 0.5) / LT).toFixed(3)};${(3.1 / LT).toFixed(3)}" dur="${LT}s" calcMode="discrete" fill="freeze"/></circle>`).join('');
+  g += T(450, 92, `LAP ${days.slice(-365).filter((d) => d.contributionCount).length} / 365`, { z: 20, a: 'middle' }) + T(842, 76, `${best}d longest · ${cur}d now`, { z: 22, a: 'end' }) + T(842, 100, 'streaks', { z: 13, b: 1, c: N.mute, a: 'end' });
+  if (weeks.length) { const n = weeks.length, ca = Math.floor(n / 3), cb = Math.floor((2 * n) / 3), secs = [[0, ca - 1], [ca, cb - 1], [cb, n - 1]].map(([a, b]) => ({ a, b, t: weeks.slice(a, b + 1).flatMap((w) => w.contributionDays).reduce((s, d) => s + d.contributionCount, 0) })), bt = Math.max(...secs.map((s) => s.t));
+    secs.forEach((s, k) => { const x = X0 + s.a * P, col = s.t === bt ? TABC[4] : k && s.t < secs[k - 1].t ? TABC[2] : TABC[0]; g += `<path d="M${x + 4} 128 H${x + (s.b - s.a + 1) * P - 8}" stroke="${col}" stroke-width="10" stroke-linecap="round"/>${T(x + 4, 150, `S${k + 1}  ${fmt(s.t)}`, { z: 15 })}`; }); }
+  let lastM = -1; const marks = []; weeks.forEach((w, ci) => { const m = new Date(w.contributionDays[0].date + 'T00:00:00Z').getUTCMonth(); if (m !== lastM) { marks.push([ci, m]); lastM = m; } });
   if (marks.length > 1 && marks[1][0] - marks[0][0] < 4) marks.shift();
-  for (const [ci, m] of marks) if (ci < weeks.length - 2) months += th(X0 + ci * P, Y0 - 10, upper(new Date(Date.UTC(2000, m, 1)).toLocaleString('en', { month: 'short' })), { z: 9, c: K.mute });
-  g += months + [1, 3, 5].map((r) => th(30, Y0 + r * P + 10, 'MWF'[(r - 1) / 2], { z: 9, c: K.mute })).join('');
-  weeks.forEach((w, ci) => { for (const d of w.contributionDays) { const [x, y] = pos[d.date]; g += `<rect class="c" x="${x}" y="${y}" width="${S}" height="${S}" fill="${RAMP[lvl(d.contributionCount)]}" style="animation-delay:${(LT + ci * 0.02).toFixed(2)}s"/>${streakDates.has(d.date) ? `<rect x="${x + 4.5}" y="${y + 4.5}" width="3" height="3" fill="${K.yellow}"/>` : ''}`; } });
-  if (!days.length) g += th(450, 236, 'no contribution data yet', { z: 13, c: K.mute, a: 'middle', f: 'b' });
-  const fx = X0 + weeks.length * P + 2; if (weeks.length) for (let r = 0; r < 17; r++) for (let c = 0; c < 2; c++) g += `<rect x="${fx + c * 6}" y="${Y0 + r * 6}" width="6" height="6" fill="${(r + c) % 2 ? K.bg : K.text}"/>`;
-  if (bestDay && bestDay.contributionCount && pos[bestDay.date]) { const [x, y] = pos[bestDay.date]; g += `<rect x="${x - 1.5}" y="${y - 1.5}" width="${S + 3}" height="${S + 3}" fill="none" stroke="${K.purple}" stroke-width="1.5"/><rect x="${x - 5}" y="${y - 20}" width="22" height="15" rx="3" fill="${K.purple}"/>${th(x + 6, y - 9, 'FL', { z: 10, a: 'middle' })}`; }
-  const laneY = 306, tags = [];
-  if (days.length) {
-    if (cfg.show_pit !== false) {
-      const gaps = []; let gs = -1; days.forEach((d, i) => { if (!d.contributionCount) { if (gs < 0) gs = i; } else { if (gs >= 0 && i - gs >= 4) gaps.push({ s: gs, n: i - gs }); gs = -1; } });
-      gaps.sort((x, y) => y.n - x.n);
-      gaps.slice(0, 8).forEach((gp, k) => { const p = pos[days[gp.s].date]; if (p && tags.every((t) => Math.abs(t.x - p[0]) > 40)) tags.push({ x: p[0], dnf: k === 0 }); });
-    }
-    g += `<line x1="${X0}" y1="${laneY}" x2="${fx + 12}" y2="${laneY}" stroke="${K.dim}" stroke-dasharray="4 4"/>` + tags.map((t) => `<rect x="${t.x}" y="${laneY + 6}" width="34" height="16" rx="3" fill="${t.dnf ? K.red : '#2e2e33'}"/>${th(t.x + 17, laneY + 18, t.dnf ? 'DNF' : 'PIT', { z: 10, a: 'middle', c: t.dnf ? '#2b0505' : '#d4d4d8' })}`).join('');
-    g += th(24, 348, cfg.show_pit !== false ? 'PIT LANE: 4+ DAYS OFF   DNF: LONGEST BREAK' : 'PIT LANE', { z: 10, c: K.mute, ls: 1 });
-  }
-  g += th(24, 372, bestDay && bestDay.contributionCount ? `FL: FASTEST LAP, ${bestDay.contributionCount} ON ${bestDay.date}   YELLOW: LONGEST STREAK   CHECKERED: THIS WEEK` : '', { z: 10, c: K.mute, ls: 1 });
-  g += th(716, 372, 'NONE', { z: 10, c: K.mute, a: 'end', ls: 1 }) + RAMP.map((c, i) => `<rect x="${726 + i * 16}" y="362" width="12" height="12" fill="${c}"/>`).join('') + th(812, 372, 'BEST', { z: 10, c: K.mute, ls: 1 });
-  if (days.length) {
-    const L0 = X0, L1 = fx + 12, span = L1 - L0, drive = 7, stops = [...tags].sort((x, y) => x.x - y.x).map((t) => ({ f: Math.min(0.97, Math.max(0.03, (t.x + 17 - L0) / span)), d: t.dnf ? 1.4 : 0.7 }));
-    const dur = drive + stops.reduce((q, st) => q + st.d, 0) + 1.2, kp = [0], kt = [0]; let tc = 0, lf = 0;
-    for (const st of stops) { tc += (st.f - lf) * drive; kp.push(st.f); kt.push(tc); tc += st.d; kp.push(st.f); kt.push(tc); lf = st.f; }
-    tc += (1 - lf) * drive; kp.push(1); kt.push(tc); kp.push(1); kt.push(dur);
-    const lv = LIVERIES[cfg.car_livery] || LIVERIES['purple-sector'], ktS = kt.map((v, i) => (i === kt.length - 1 ? '1' : (v / dur).toFixed(4))).join(';'), kpS = kp.map((v) => v.toFixed(4)).join(';');
-    g += `<g opacity="0"><set attributeName="opacity" to="1" begin="${LT + 1.1}s" fill="freeze"/><g><animateMotion path="M${L0} ${laneY - 8}H${L1}" dur="${dur.toFixed(2)}s" begin="${LT + 1.1}s" repeatCount="indefinite" keyPoints="${kpS}" keyTimes="${ktS}" calcMode="linear"/><g transform="translate(-19.5 -7)">${carSprite(lv, 1.3)}</g></g></g>`;
-  }
-  return svg(W, H, g, '.c{animation:p .3s ease-out backwards}@keyframes p{from{opacity:0}}');
+  for (const [ci, m] of marks) if (ci < weeks.length - 2) g += T(X0 + ci * P, Y0 - 6, new Date(Date.UTC(2000, m, 1)).toLocaleString('en', { month: 'short' }), { z: 14, c: N.mute });
+  for (const d of days) { const [x, y] = pos[d.date], l = lvl(d.contributionCount), rot = ((Date.parse(d.date) / 864e5) % 7 - 3) * 1.2; g += `<rect class="c" style="animation-delay:${(LT + (x - X0) / P * 0.02).toFixed(2)}s" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="11" height="11" rx="2" fill="${RA[l]}" stroke="${N.ink}" stroke-width=".8" stroke-opacity="${l ? 0.55 : 0.2}" transform="rotate(${rot.toFixed(1)} ${(x + 5.5).toFixed(1)} ${(y + 5.5).toFixed(1)})"/>${streakDates.has(d.date) ? `<circle cx="${(x + 5.5).toFixed(1)}" cy="${(y + 5.5).toFixed(1)}" r="1.8" fill="${N.rust}"/>` : ''}`; }
+  if (!days.length) g += T(450, 230, 'no contribution data yet', { z: 22, a: 'middle', c: N.mute });
+  if (bestDay && bestDay.contributionCount && pos[bestDay.date]) { const [x, y] = pos[bestDay.date]; g += `<ellipse cx="${x + 5.5}" cy="${y + 5.5}" rx="12" ry="10" fill="none" stroke="${N.red}" stroke-width="2"/>${T(x - 6, y - 10, 'FL', { z: 16, c: N.red })}`; }
+  const fx = X0 + weeks.length * P + 4; if (weeks.length) for (let r = 0; r < 9; r++) for (let k = 0; k < 2; k++) g += `<rect x="${fx + k * 6}" y="${Y0 + r * 11}" width="6" height="11" fill="${(r + k) % 2 ? N.ink : N.paper}" stroke="${N.ink}" stroke-width=".5"/>`;
+  const laneY = 300, tags = [];
+  if (days.length && cfg.show_pit !== false) { const gaps = []; let gs = -1; days.forEach((d, i) => { if (!d.contributionCount) { if (gs < 0) gs = i; } else { if (gs >= 0 && i - gs >= 4) gaps.push({ s: gs, n: i - gs }); gs = -1; } }); gaps.sort((a, b) => b.n - a.n);
+    gaps.slice(0, 8).forEach((gp, k) => { const p = pos[days[gp.s].date]; if (p && tags.every((t) => Math.abs(t.x - p[0]) > 46)) tags.push({ x: p[0], dnf: k === 0 }); }); }
+  g += `<path d="M${X0} ${laneY} H${fx + 12}" stroke="${N.ink}" stroke-width="1.6" stroke-dasharray="7 6"/>` + tags.map((t) => `${paperBox(t.x, laneY + 8, 42, 22, N.paper)}${T(t.x + 21, laneY + 25, t.dnf ? 'DNF' : 'PIT', { z: 16, a: 'middle', c: t.dnf ? N.rust : N.ink })}`).join('');
+  if (days.length) { const L0 = X0 + 10, L1 = fx + 6, sp = L1 - L0, drive = 7, st = [...tags].sort((a, b) => a.x - b.x).map((t) => ({ f: Math.min(0.97, Math.max(0.03, (t.x + 21 - L0) / sp)), d: t.dnf ? 1.4 : 0.7 })), dur = drive + st.reduce((q, s) => q + s.d, 0) + 1.2, kp = [0], kt = [0]; let tc = 0, lf = 0;
+    for (const s of st) { tc += (s.f - lf) * drive; kp.push(s.f); kt.push(tc); tc += s.d; kp.push(s.f); kt.push(tc); lf = s.f; } tc += (1 - lf) * drive; kp.push(1); kt.push(tc); kp.push(1); kt.push(dur);
+    const car = `<g fill="none" stroke="${N.ink}" stroke-width="1.8" stroke-linejoin="round"><path d="M-22 -2 h8 l4 -8 h10 l3 6 h18 l6 4 v4 h-49z" fill="${N.card}"/><path d="M-26 -12 v12 M-29 -12 h8"/><circle cx="-14" cy="4" r="5" fill="${N.ink}"/><circle cx="16" cy="4" r="5" fill="${N.ink}"/></g><circle cx="-2" cy="-10" r="3" fill="${N.red}"/>`;
+    g += `<g opacity="0"><set attributeName="opacity" to="1" begin="${LT + 1.1}s" fill="freeze"/><g><animateMotion path="M${L0} ${laneY - 9}H${L1}" dur="${dur.toFixed(2)}s" begin="${LT + 1.1}s" repeatCount="indefinite" keyPoints="${kp.map((v) => v.toFixed(4)).join(';')}" keyTimes="${kt.map((v, i) => (i === kt.length - 1 ? '1' : (v / dur).toFixed(4))).join(';')}" calcMode="linear"/>${car}</g></g>`; }
+  g += T(66, 370, 'circled: fastest lap · dots: longest streak · PIT: 4+ days off · DNF: longest break · checkered: this week', { z: 15, c: N.mute });
+  g += T(700, 396, 'less', { z: 14, c: N.mute, a: 'end' }) + RA.map((c, i) => `<rect x="${708 + i * 18}" y="384" width="13" height="13" rx="2" fill="${c}" stroke="${N.ink}" stroke-opacity=".5"/>`).join('') + T(802, 396, 'more', { z: 14, c: N.mute });
+  return svg(W, H, g, '.c{animation:f .3s ease-out backwards}@keyframes f{from{opacity:0}}');
 }
 
-const CF_COL = { newbie: '#9e9e9e', pupil: '#5fd68a', specialist: '#03c4b4', expert: '#6b8cff', 'candidate master': '#b44cff', master: '#eb9b3a', 'international master': '#eb9b3a', grandmaster: '#ff6b6b', 'international grandmaster': '#ff6b6b', 'legendary grandmaster': '#ff6b6b', unrated: '#8b90a0' };
-const cap = (s) => String(s).replace(/\b\w/g, (m) => m.toUpperCase());
-function cfSvg(cf) {
-  const W = 900, H = 260, col = CF_COL[cf.rank] || C.text, X1 = 350, X2 = 876, Y1 = 66, Y2 = 210;
-  let g = `${card(W, H)}${t(24, 40, 'Codeforces', { z: 20, f: 'h', w: 700 })}${t(300, 40, cf.handle, { z: 12, f: 'm', c: C.mute, a: 'end' })}${t(24, 70, cap(cf.rank), { z: 14, c: col })}`;
-  g += `${t(24, 130, String(cf.rating || '-'), { z: 56, f: 'h', w: 700, c: col })}${t(24, 154, `max ${cf.maxRating || '-'} · ${cf.maxRank}`, { z: 12, f: 'm', c: C.mute })}`;
-  g += `${t(24, 196, 'problems solved', { z: 13, c: C.mute })}${t(300, 196, cf.solved == null ? '-' : String(cf.solved), { z: 15, f: 'h', w: 700, a: 'end' })}${t(24, 226, 'rated contests', { z: 13, c: C.mute })}${t(300, 226, String(cf.contests), { z: 15, f: 'h', w: 700, a: 'end' })}`;
-  g += `<line x1="326" y1="28" x2="326" y2="232" stroke="${C.line}"/>${t(X1, 40, 'rating history', { z: 12, f: 'm', c: C.mute })}`;
-  const hs = cf.history || [];
-  if (hs.length < 2) return svg(W, H, g + t((X1 + X2) / 2, 140, hs.length ? 'one rated contest so far' : 'no rated contests yet', { z: 13, c: C.mute, a: 'middle' }));
-  const lo = Math.min(...hs.map((h) => h[1])) - 80, hi = Math.max(...hs.map((h) => h[1])) + 80, t0 = hs[0][0], t1 = hs[hs.length - 1][0];
-  const X = (v) => X1 + ((v - t0) / Math.max(1, t1 - t0)) * (X2 - X1), Y = (v) => Y2 - ((v - lo) / (hi - lo)) * (Y2 - Y1);
-  for (const [r, name] of [[1200, 'pupil'], [1400, 'specialist'], [1600, 'expert'], [1900, 'cand. master'], [2100, 'master'], [2400, 'grandmaster']]) if (r > lo && r < hi) g += `<line x1="${X1}" y1="${Y(r).toFixed(1)}" x2="${X2}" y2="${Y(r).toFixed(1)}" stroke="${C.line}" stroke-dasharray="3 4"/>${t(X1 + 2, Y(r) - 4, `${r} ${name}`, { z: 9, f: 'm', c: C.dim })}`;
-  const d = 'M' + hs.map((h) => `${X(h[0]).toFixed(1)} ${Y(h[1]).toFixed(1)}`).join('L');
-  g += `<path d="${d}" fill="none" stroke="${C.peri}" stroke-width="2" stroke-linejoin="round" pathLength="1" stroke-dasharray="1"><animate attributeName="stroke-dashoffset" from="1" to="0" dur="2s" fill="freeze"/></path>`;
-  hs.forEach((h, i) => { g += `<circle cx="${X(h[0]).toFixed(1)}" cy="${Y(h[1]).toFixed(1)}" r="${i === hs.length - 1 ? 5 : 2.5}" fill="${i === hs.length - 1 ? col : C.peri}"/>`; });
-  g += `${t(X1, 236, new Date(t0).getUTCFullYear(), { z: 10, f: 'm', c: C.mute })}${t(X2, 236, 'now', { z: 10, f: 'm', c: C.mute, a: 'end' })}`;
-  return svg(W, H, g);
-}
-function lcSvg(lc) {
-  const W = 900, H = 260, X1 = 350, RA = ['#1f1f23', '#4a3517', '#7a531c', '#b97a26', '#eb9b3a'];
-  let g = `${card(W, H)}${t(24, 40, 'LeetCode', { z: 20, f: 'h', w: 700 })}${t(300, 40, lc.user, { z: 12, f: 'm', c: C.mute, a: 'end' })}`;
-  const c = lc.contest; g += t(24, 68, c ? `contest rating ${Math.round(c.rating)} · top ${c.top}%` : 'no contest rating yet', { z: 13, c: c ? C.peri : C.mute });
-  g += t(24, 88, lc.ranking ? `global rank #${fmt(lc.ranking)}` : '', { z: 12, f: 'm', c: C.mute });
-  g += `${t(24, 146, String(lc.all), { z: 56, f: 'h', w: 700 })}${t(24, 168, 'problems solved', { z: 13, c: C.mute })}`;
-  const mx = Math.max(1, lc.easy, lc.medium, lc.hard);
-  [['easy', lc.easy, C.green], ['medium', lc.medium, C.orange], ['hard', lc.hard, C.red]].forEach(([l, v, cc], i) => { const y = 198 + i * 22; g += `${t(24, y, l, { z: 12, f: 'm', c: C.mute })}<rect x="92" y="${y - 9}" width="${(170 * v / mx).toFixed(1)}" height="8" rx="4" fill="${cc}"/>${t(300, y, String(v), { z: 13, f: 'h', w: 700, a: 'end' })}`; });
-  g += `<line x1="326" y1="28" x2="326" y2="232" stroke="${C.line}"/>${t(X1, 40, 'submissions, last 12 months', { z: 12, f: 'm', c: C.mute })}`;
-  const cal = lc.cal || {}, byDay = {}; for (const [ts, n] of Object.entries(cal)) { const k = new Date(Number(ts) * 1000).toISOString().slice(0, 10); byDay[k] = (byDay[k] || 0) + n; }
-  const end = new Date(); end.setUTCHours(0, 0, 0, 0); const start = new Date(end); start.setUTCDate(start.getUTCDate() - 364); start.setUTCDate(start.getUTCDate() - start.getUTCDay());
-  const vals = Object.values(byDay), cmax = Math.max(1, ...vals); let total = 0, active = 0, ci = 0, lastM = -1;
-  for (const d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
-    const k = d.toISOString().slice(0, 10), n = byDay[k] || 0, wd = d.getUTCDay(); if (wd === 0 && d > start) ci++;
-    if (n) { total += n; active++; }
-    const l = n === 0 ? 0 : n / cmax <= 0.25 ? 1 : n / cmax <= 0.5 ? 2 : n / cmax <= 0.75 ? 3 : 4, x = X1 + ci * 9.8, y = 70 + wd * 10;
-    if (wd === 0 && d.getUTCMonth() !== lastM && d.getUTCDate() <= 7) { lastM = d.getUTCMonth(); g += t(x, 62, upper(d.toLocaleString('en', { month: 'short', timeZone: 'UTC' })), { z: 9, f: 'm', c: C.mute }); }
-    g += `<rect x="${x.toFixed(1)}" y="${y}" width="8" height="8" rx="1.5" fill="${RA[l]}"/>`;
-  }
-  g += `${t(X1, 178, String(fmt(total)), { z: 30, f: 'h', w: 700 })}${t(X1, 198, 'submissions', { z: 12, c: C.mute })}${t(X1 + 180, 178, String(active), { z: 30, f: 'h', w: 700 })}${t(X1 + 180, 198, 'active days', { z: 12, c: C.mute })}`;
-  g += t(X1, 234, 'less', { z: 10, f: 'm', c: C.mute }) + RA.map((cc, i) => `<rect x="${X1 + 34 + i * 12}" y="226" width="9" height="9" rx="1.5" fill="${cc}"/>`).join('') + t(X1 + 96, 234, 'more', { z: 10, f: 'm', c: C.mute });
-  return svg(W, H, g);
-}
-
-function ecgSvg() {
-  const W = 900, H = 290, L = 40, R = 860, b = 186, m = {};
+function ecgN() {
+  const W = 900, H = 310, L = 66, R0 = 850, b = 210, m = {};
   for (const d of days) { const k = d.date.slice(0, 7); m[k] = (m[k] || 0) + d.contributionCount; }
-  const keys = Object.keys(m).sort().slice(-12), vals = keys.map((k) => m[k]), max = Math.max(1, ...vals), mw = (R - L) / Math.max(1, keys.length); let d = `M${L} ${b}`, labels = '';
+  const keys = Object.keys(m).sort().slice(-12), vals = keys.map((k) => m[k]), max = Math.max(1, ...vals), mw = (R0 - L) / Math.max(1, keys.length); let d = `M${L} ${b}`, lab = '';
   keys.forEach((k, i) => { const x0 = L + i * mw, u = mw / 10, v = vals[i], X = (q) => (x0 + q * u).toFixed(1);
-    if (v > 0) { const A = 12 + (v / max) * 92; d += `L${X(1.4)} ${b}Q${X(2.2)} ${b - 9} ${X(3)} ${b}L${X(4.1)} ${b}L${X(4.5)} ${b + 10}L${X(5)} ${b - A}L${X(5.5)} ${b + 16}L${X(6)} ${b}L${X(6.8)} ${b}Q${X(7.7)} ${b - 18} ${X(8.6)} ${b}L${X(10)} ${b}`; } else d += `L${X(10)} ${b}`;
-    labels += t((x0 + mw / 2).toFixed(1), 236, upper(new Date(k + '-01T00:00:00Z').toLocaleString('en', { month: 'short', timeZone: 'UTC' })), { z: 10, f: 'm', c: C.mute, a: 'middle' }) + t((x0 + mw / 2).toFixed(1), 256, String(vals[i]), { z: 12, f: 'm', a: 'middle' }); });
-  if (!keys.length) d += `L${R} ${b}`;
-  const avg = days.length ? (contribs / days.length).toFixed(1) : '0.0', dur = '6s', kt = 'keyTimes="0;.75;1"';
-  return svg(W, H, `<defs><pattern id="g1" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M10 0H0V10" fill="none" stroke="${C.peri}" stroke-opacity=".07"/></pattern><pattern id="g2" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M50 0H0V50" fill="none" stroke="${C.peri}" stroke-opacity=".14"/></pattern><filter id="gl" x="-10%" y="-30%" width="120%" height="160%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-${card(W, H, C.navy)}${t(28, 42, 'Monthly pulse', { z: 20, f: 'h', w: 700 })}${t(28, 62, 'one heartbeat per month, height = contributions', { z: 12, c: C.mute })}${t(872, 46, `${avg} per day on average`, { z: 12, f: 'm', c: C.mute, a: 'end' })}
-<rect x="24" y="76" width="852" height="136" fill="url(#g1)"/><rect x="24" y="76" width="852" height="136" fill="url(#g2)"/>
-<path d="${d}" fill="none" stroke="${C.peri}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" pathLength="1" stroke-dasharray="1" filter="url(#gl)"><animate attributeName="stroke-dashoffset" values="1;0;0" ${kt} dur="${dur}" repeatCount="indefinite"/></path>
-<circle r="3.2" fill="${C.lav}" filter="url(#gl)"><animateMotion path="${d}" dur="${dur}" repeatCount="indefinite" calcMode="linear" keyPoints="0;1;1" ${kt}/><animate attributeName="opacity" values="1;1;0" ${kt} dur="${dur}" repeatCount="indefinite"/></circle>${labels}`);
+    if (v > 0) { const A = 12 + (v / max) * 100; d += `L${X(1.4)} ${b}Q${X(2.2)} ${b - 9} ${X(3)} ${b}L${X(4.1)} ${b}L${X(4.5)} ${b + 10}L${X(5)} ${b - A}L${X(5.5)} ${b + 16}L${X(6)} ${b}L${X(6.8)} ${b}Q${X(7.7)} ${b - 18} ${X(8.6)} ${b}L${X(10)} ${b}`; } else d += `L${X(10)} ${b}`;
+    lab += T(x0 + mw / 2, 258, new Date(k + '-01T00:00:00Z').toLocaleString('en', { month: 'short', timeZone: 'UTC' }), { z: 16, a: 'middle', c: N.mute }) + T(x0 + mw / 2, 280, String(v), { z: 13, b: 1, a: 'middle' }); });
+  if (!keys.length) d += `L${R0} ${b}`;
+  let g = sheet(W, H) + `<defs><pattern id="gp" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M12 0H0V12" fill="none" stroke="${N.blue}" stroke-width=".8"/></pattern></defs><rect x="56" y="88" width="804" height="140" fill="url(#gp)" opacity=".8"/>`;
+  g += T(58, 66, 'Monthly pulse', { z: 32 }) + hl(60, 74, 170, TABC[1]) + T(250, 64, 'one heartbeat a month, taller = busier', { z: 14, b: 1, c: N.mute }) + T(850, 64, `${days.length ? (contribs / days.length).toFixed(1) : '0.0'} a day on average`, { z: 17, a: 'end' });
+  g += `<path d="${d}" fill="none" stroke="${N.red}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" pathLength="1" stroke-dasharray="1"><animate attributeName="stroke-dashoffset" values="1;0;0" keyTimes="0;.75;1" dur="6s" repeatCount="indefinite"/></path>`;
+  return svg(W, H, g + lab);
 }
 
-function stackSvg(title, items) {
-  const W = 900; let x = 24, y = 58, rows = 1, out = '';
-  items.forEach((n) => { const has = !!ICONS[n.toLowerCase()], w = Math.round(tw(n, 13) + (has ? 52 : 40)); if (x + w > W - 24) { x = 24; y += 46; rows++; }
-    out += `<g transform="translate(${x} ${y})"><rect width="${w}" height="36" rx="10" fill="${C.navy}" stroke="${C.line}"/>${has ? ico(n, 12, 10, 16) : `<circle cx="15" cy="18" r="3.5" fill="${C.peri}"/>`}${t(has ? 36 : 28, 23, n, { z: 13 })}</g>`; x += w + 10; });
-  const H = 58 + rows * 46 + 6;
-  return svg(W, H, `${card(W, H)}${t(24, 34, title, { z: 20, f: 'h', w: 700 })}${t(876, 34, String(items.length), { z: 12, f: 'm', c: C.mute, a: 'end' })}${out}`);
+function stackN(title, items, i) {
+  const W = 900; let x = 60, y = 78, rows = 1, out = '';
+  items.forEach((n, k) => { const has = !!ICONS[n.toLowerCase()], w = Math.round(tw2(n, 15, 1) + (has ? 50 : 36)); if (x + w > W - 40) { x = 60; y += 48; rows++; }
+    out += `<g transform="rotate(${k % 2 ? 0.8 : -0.8} ${x + w / 2} ${y + 17})">${paperBox(x, y, w, 34, N.card)}${has ? icoN(n, x + 12, y + 9, 16) : `<circle cx="${x + 15}" cy="${y + 17}" r="4" fill="${TABC[k % 5]}" stroke="${N.ink}"/>`}${T(x + (has ? 36 : 26), y + 23, n, { z: 15, b: 1 })}</g>`; x += w + 12; });
+  const H = 78 + rows * 48 + 24;
+  return svg(W, H, sheet(W, H) + T(58, 56, title, { z: 30 }) + hl(60, 64, tw2(title, 30), TABC[i % 5]) + T(850, 54, `${items.length}`, { z: 22, a: 'end', c: N.mute }) + out);
 }
-function langsSvg() {
+function langsN() {
   const cnt = {}; for (const r of repos) if (r.language && !r.fork) cnt[r.language] = (cnt[r.language] || 0) + 1;
-  const src = Object.keys(langBytes).length ? langBytes : cnt, arr_ = Object.entries(src).sort((a, b) => b[1] - a[1]).slice(0, 7); if (!arr_.length) return null;
-  const tot = arr_.reduce((a, [, n]) => a + n, 0); let x = 24, bar = '', lg = '', lx = 24;
-  arr_.forEach(([l, n], i) => { const w = (n / tot) * 852; bar += `<rect x="${x.toFixed(1)}" y="56" width="${Math.max(3, w - 3).toFixed(1)}" height="12" rx="6" fill="${PAL[i]}"/>`; x += w; const s = `${l} ${Math.round((n / tot) * 100)}%`; lg += `<circle cx="${lx + 4}" cy="94" r="4" fill="${PAL[i]}"/>${t(lx + 14, 98, s, { z: 12 })}`; lx += tw(s, 12) + 34; });
-  return svg(900, 124, `${card(900, 124)}${t(24, 34, 'Languages across public repos', { z: 20, f: 'h', w: 700 })}${bar}${lg}`);
+  const src = Object.keys(langBytes).length ? langBytes : cnt, arr = Object.entries(src).sort((a, b) => b[1] - a[1]).slice(0, 6); if (!arr.length) return null;
+  const tot = arr.reduce((a, [, n]) => a + n, 0); let x = 60, g = sheet(900, 170) + T(58, 56, 'Languages, public repos', { z: 30 }), lx = 60;
+  arr.forEach(([l, n], i) => { const w = (n / tot) * 780; g += `<rect x="${x.toFixed(1)}" y="80" width="${Math.max(4, w - 4).toFixed(1)}" height="20" rx="4" fill="${TABC[i % 5]}" stroke="${N.ink}" stroke-width="1.4"/>`; x += w; const s = `${l} ${Math.round((n / tot) * 100)}%`; g += `<rect x="${lx}" y="120" width="12" height="12" rx="2" fill="${TABC[i % 5]}" stroke="${N.ink}"/>${T(lx + 18, 131, s, { z: 17 })}`; lx += tw2(s, 17) + 40; });
+  return svg(900, 170, g);
 }
 
-function ossSvg() {
-  const W = 900, all = prList, list = all.slice(-14), n = list.length, two = n > 7, half = Math.ceil(n / 2), rows = two ? [list.slice(0, half), list.slice(half)] : [list];
-  const H = two ? 580 : 490, street = H - 96;
-  const head = `${t(28, 70, String(totals.merged), { z: 52, f: 'h', w: 700, c: C.peri })}${t(28 + tw(String(totals.merged), 52, 'h') + 14, 64, 'pull requests merged', { z: 16 })}${t(872, 64, `${cards.length} project${cards.length === 1 ? '' : 's'} · oldest to newest`, { z: 12, f: 'm', c: C.mute, a: 'end' })}<line x1="28" y1="92" x2="872" y2="92" stroke="${C.line}"/>`;
-  if (!n) return svg(W, 140, `${card(W, 140)}${head}${t(450, 124, 'merged pull requests appear here once the token can see them', { z: 12, f: 'm', c: C.mute, a: 'middle' })}`);
-  const c = 0.866, sn = 0.5, FW = 32, FD = 32, R = (i) => Math.abs(Math.sin(i * 12.9898) * 43758.5453) % 1;
-  const P = (bx, by, x, y, z = 0) => [bx + (x - y) * c, by + (x + y) * sn - z], pts = (a) => a.map((q) => q.map((v) => v.toFixed(1)).join(',')).join(' ');
-  const pal = [['#2a2a2e', '#1e1e21', '#161618'], ['#303034', '#222225', '#18181a'], ['#26262a', '#1b1b1e', '#131315']];
-  let g = `${card(W, H)}${head}<rect x="16" y="${street}" width="${W - 32}" height="46" fill="#0d0d0f"/><rect x="16" y="${street - 5}" width="${W - 32}" height="5" fill="#1f1f23"/>`;
-  for (let x = 28; x < W - 30; x += 40) g += `<rect x="${x}" y="${street + 22}" width="22" height="2" fill="${C.dim}"/>`;
-  let bills = '', idx = 0;
-  rows.forEach((row, ri) => {
-    const front = ri === rows.length - 1, per = row.length, span = 700, step = per > 1 ? Math.min(128, span / (per - 1)) : 0, x0 = 450 - ((per - 1) * step) / 2 - FD * c + (front ? 0 : 56), by = street - 8 - (FW + FD) * sn - (front ? 0 : 50);
-    row.forEach((p, j) => {
-      const i = idx++, bx = x0 + j * step + FD * c, Hb = Math.min(240, 56 + Math.log2(1 + p.size) * 17), col = pal[i % 3], dl = (i * 0.14).toFixed(2), seed = i * 97 + p.num;
-      const tiered = Hb > 130, h1 = tiered ? Math.round(Hb * 0.64) : Hb, ins = 6;
-      const box = (xa, ya, za, w, d, h, cl, win = true) => {
-        const A = P(bx, by, xa, ya, za), B = P(bx, by, xa + w, ya, za), C2 = P(bx, by, xa + w, ya + d, za), D = P(bx, by, xa, ya + d, za), u = (q) => [q[0], q[1] - h];
-        let o = `<polygon points="${pts([D, C2, u(C2), u(D)])}" fill="${cl[1]}"/><polygon points="${pts([B, C2, u(C2), u(B)])}" fill="${cl[2]}"/><polygon points="${pts([u(A), u(B), u(C2), u(D)])}" fill="${cl[0]}"/>`;
-        if (win) for (let z = za + 9; z < za + h - 7; z += 11) {
-          for (let x = xa + 4; x < xa + w - 4; x += 7) o += `<polygon class="w" style="animation-delay:${(+dl + 0.8 + (z - za) / 170).toFixed(2)}s" points="${pts([P(bx, by, x, ya + d, z), P(bx, by, x + 4, ya + d, z), P(bx, by, x + 4, ya + d, z + 6), P(bx, by, x, ya + d, z + 6)])}" fill="${R(seed + z * 3 + x) > 0.45 ? '#ececec' : '#26262b'}"/>`;
-          for (let y = ya + 4; y < ya + d - 4; y += 7) o += `<polygon points="${pts([P(bx, by, xa + w, y, z), P(bx, by, xa + w, y + 4, z), P(bx, by, xa + w, y + 4, z + 6), P(bx, by, xa + w, y, z + 6)])}" fill="${R(seed + z * 5 + y + 1) > 0.6 ? '#a1a1aa' : '#1c1c1f'}"/>`;
-        }
-        return o + `<polyline points="${pts([u(D), u(C2), u(B)])}" fill="none" stroke="${C.gray}" stroke-width="1.1"/>`;
-      };
-      let b = box(0, 0, 0, FW, FD, h1, col), rz = h1, rx = 0, ry = 0, rw = FW, rd = FD;
-      if (tiered) { b += box(ins, ins, h1, FW - 2 * ins, FD - 2 * ins, Hb - h1, col); rz = Hb; rx = ins; ry = ins; rw = FW - 2 * ins; rd = FD - 2 * ins; }
-      b += box(rx + rw - 9, ry + 2, rz, 6, 6, 5, ['#52525b', '#3f3f46', '#2e2e33'], false);
-      const an = P(bx, by, rx + 4, ry + 4, rz);
-      b += `<line x1="${an[0].toFixed(1)}" y1="${an[1].toFixed(1)}" x2="${an[0].toFixed(1)}" y2="${(an[1] - 20).toFixed(1)}" stroke="${C.mute}" stroke-width="1.1"/><circle class="bl" cx="${an[0].toFixed(1)}" cy="${(an[1] - 20).toFixed(1)}" r="2" fill="#e5484d" style="animation-delay:${(i * 0.3).toFixed(1)}s"/>`;
-      g += `<g class="b" style="animation-delay:${dl}s">${b}</g>`;
-      const nm = cut(label[p.repo] || 'private', 16), nb = label[p.repo] ? `#${p.num} merged` : 'merged', bw = Math.max(nm.length * 6.1, nb.length * 5.5) + 18, o = P(bx, by, rx + 1, ry + rd - 3, rz + 50);
-      bills += `<g class="hb" style="animation-delay:${(+dl + 1.2).toFixed(2)}s"><g transform="matrix(0.866 0.5 0 1 ${(o[0] - bw * 0.25).toFixed(1)} ${(o[1] - bw * 0.14).toFixed(1)})"><line x1="${(bw * 0.22).toFixed(1)}" y1="30" x2="${(bw * 0.22).toFixed(1)}" y2="52" stroke="${C.gray}" stroke-width="2"/><line x1="${(bw * 0.62).toFixed(1)}" y1="30" x2="${(bw * 0.62).toFixed(1)}" y2="44" stroke="${C.gray}" stroke-width="2"/><polygon points="${(bw * 0.15).toFixed(1)},-4 ${(bw * 0.35).toFixed(1)},-4 ${(bw * 0.5).toFixed(1)},30 0,30" fill="#ffffff" opacity=".06"/><rect width="${bw.toFixed(1)}" height="30" rx="2" fill="#f4f4f5" stroke="${C.gray}"/><rect width="${bw.toFixed(1)}" height="4" fill="${C.peri}"/>${t(8, 16, nm, { z: 10, f: 'm', c: C.bg })}${t(8, 26, nb, { z: 9, f: 'm', c: C.purple })}<rect x="${(bw * 0.18).toFixed(1)}" y="-6" width="5" height="3" fill="${C.mute}"/><rect x="${(bw * 0.7).toFixed(1)}" y="-6" width="5" height="3" fill="${C.mute}"/></g></g>`;
-      if (front) { const base = P(bx, by, FW, FD, 0); g += t(base[0].toFixed(1), street + 40, new Date(p.t1).toLocaleString('en', { month: 'short', day: 'numeric', timeZone: 'UTC' }), { z: 10, f: 'm', c: C.mute, a: 'middle' }); }
-    });
-  });
-  const more = all.length > 14 ? `+${all.length - 14} earlier · ` : '';
-  return svg(W, H, `${g}${bills}${t(28, H - 16, `${more}one building per merged PR · height = lines changed · billboard = repo and PR number`, { z: 11, f: 'm', c: C.dim })}`,
-    '.b{transform-box:fill-box;transform-origin:50% 100%;animation:rise 1s cubic-bezier(.2,.8,.2,1) backwards}.w{animation:on .25s ease-out backwards}.hb{animation:on .5s ease-out backwards}.bl{animation:bl 1.4s steps(1) infinite}@keyframes rise{from{transform:scaleY(0)}}@keyframes on{from{opacity:0}}@keyframes bl{50%{opacity:.15}}');
-}
-function ossCard(c) {
-  const W = 440, H = 120, tt = c.merged + c.open + c.closed, bw = 396;
-  const seg = (n, col, x) => (tt && n ? `<rect x="${x.toFixed(1)}" y="92" width="${Math.max(4, (n / tt) * bw - 3).toFixed(1)}" height="6" rx="3" fill="${col}"/>` : '');
-  const bars = tt ? seg(c.merged, C.peri, 22) + seg(c.open, C.orange, 22 + (c.merged / tt) * bw) + seg(c.closed, C.dim, 22 + ((c.merged + c.open) / tt) * bw) : `<rect x="22" y="92" width="${bw}" height="6" rx="3" fill="${C.dim}"/>`;
-  return svg(W, H, `${card(W, H)}${t(22, 40, cut(c.title, 26), { z: 19, f: 'h', w: 700 })}${t(22, 62, c.private ? 'PRIVATE' : 'PUBLIC', { z: 10, f: 'm', c: C.mute, ls: 2 })}${t(418, 52, String(c.merged), { z: 40, f: 'h', w: 700, c: C.peri, a: 'end' })}${t(418, 68, 'merged', { z: 11, c: C.mute, a: 'end' })}${c.link ? arr(402, 102, 10, C.mute) : ''}${bars}${t(22, 114, `${c.open} open · ${c.closed} closed`, { z: 10, f: 'm', c: C.mute })}`);
+function cityN() {
+  const W = 900, list = prList.slice(-14), n = list.length, two = n > 7, half = Math.ceil(n / 2), rows = two ? [list.slice(0, half), list.slice(half)] : [list], H = two ? 590 : 500, street = H - 106;
+  let g = sheet(W, H) + T(58, 70, `${totals.merged}`, { z: 50 }) + T(66 + tw2(String(totals.merged), 50), 66, 'pull requests merged', { z: 24 }) + T(850, 64, `${cards.length} projects · oldest to newest`, { z: 16, a: 'end', c: N.mute });
+  if (!n) return svg(W, 160, sheet(W, 160) + T(58, 70, '0 pull requests merged', { z: 28 }) + T(58, 110, 'merged PRs show up here once the token can see them', { z: 18, c: N.mute }));
+  g += `<defs><pattern id="hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="5" stroke="${N.ink}" stroke-width=".9" opacity=".5"/></pattern></defs><path d="M52 ${street} H860 M52 ${street + 30} H860" stroke="${N.ink}" stroke-width="1.6"/><path d="M52 ${street + 15} H860" stroke="${N.line}" stroke-width="2" stroke-dasharray="14 10"/>`;
+  const c = 0.866, s = 0.5, FW = 30, P = (bx, by, x, y, z = 0) => [bx + (x - y) * c, by + (x + y) * s - z], pts = (a) => a.map((p) => p.map((v) => v.toFixed(1)).join(',')).join(' '); let bills = '', idx = 0;
+  rows.forEach((row, ri) => { const front = ri === rows.length - 1, per = row.length, step = per > 1 ? Math.min(124, 680 / (per - 1)) : 0, x0 = 455 - ((per - 1) * step) / 2 - FW * c + (front ? 0 : 56), by = street - 6 - FW - (front ? 0 : 50);
+    row.forEach((p, j) => { const i = idx++, bx = x0 + j * step + FW * c, H2 = Math.min(230, 56 + Math.log2(1 + (p.size || 40)) * 17), dl = (i * 0.15).toFixed(2);
+      const A = P(bx, by, 0, 0), B = P(bx, by, FW, 0), C2 = P(bx, by, FW, FW), D = P(bx, by, 0, FW), u = (q) => [q[0], q[1] - H2];
+      let b = `<polygon points="${pts([D, C2, u(C2), u(D)])}" fill="${N.card}" stroke="${N.ink}" stroke-width="1.8"/><polygon points="${pts([B, C2, u(C2), u(B)])}" fill="url(#hatch)" stroke="${N.ink}" stroke-width="1.8"/><polygon points="${pts([u(A), u(B), u(C2), u(D)])}" fill="${N.card}" stroke="${N.ink}" stroke-width="1.8"/>`;
+      for (let z = 12; z < H2 - 10; z += 14) for (let x = 5; x < FW - 4; x += 8) { const q = [P(bx, by, x, FW, z), P(bx, by, x + 5, FW, z), P(bx, by, x + 5, FW, z + 8), P(bx, by, x, FW, z + 8)]; b += `<polygon points="${pts(q)}" fill="${(Math.sin((i + 1) * 97 + z * 3 + x) + 1) / 2 > 0.5 ? N.hl : 'none'}" stroke="${N.ink}" stroke-width=".9"/>`; }
+      const an = P(bx, by, 6, 6, H2); b += `<path d="M${an[0].toFixed(1)} ${an[1].toFixed(1)} v-18" stroke="${N.ink}" stroke-width="1.4"/><circle cx="${an[0].toFixed(1)}" cy="${(an[1] - 18).toFixed(1)}" r="2.5" fill="${N.red}"/>`;
+      g += `<g class="b" style="animation-delay:${dl}s" filter="url(#r)">${b}</g>`;
+      if (front) g += T(C2[0], street + 52, md(p.t1), { z: 16, a: 'middle' });
+      const nm = cut(label[p.repo] || 'private', 15), nb = label[p.repo] ? `#${p.num} merged` : 'merged', bw = Math.max(tw2(nm, 15), tw2(nb, 13)) + 22, o = P(bx, by, 2, FW - 4, H2 + 46);
+      bills += `<g class="f" style="animation-delay:${(+dl + 1.2).toFixed(2)}s"><g transform="matrix(.866 .5 0 1 ${(o[0] - bw * 0.25).toFixed(1)} ${(o[1] - bw * 0.14).toFixed(1)})"><path d="M${(bw * 0.22).toFixed(1)} 30 v20 M${(bw * 0.62).toFixed(1)} 30 v14" stroke="${N.ink}" stroke-width="1.6"/><rect width="${bw.toFixed(1)}" height="30" rx="2" fill="${N.card}" stroke="${N.ink}" stroke-width="1.6"/>${T(8, 15, nm, { z: 15 })}${T(8, 27, nb, { z: 13, c: N.rust })}<rect x="${(bw / 2 - 14).toFixed(1)}" y="-6" width="28" height="9" fill="${TABC[1]}" opacity=".85"/></g></g>`; }); });
+  const more = prList.length > 14 ? `+${prList.length - 14} earlier · ` : '';
+  return svg(W, H, g + bills + T(58, H - 26, `${more}one building per merged PR · taller = more lines changed`, { z: 15, c: N.mute }), '.b{transform-box:fill-box;transform-origin:50% 100%;animation:rise 1s cubic-bezier(.2,.8,.2,1) backwards}.f{animation:f .5s ease-out backwards}@keyframes rise{from{transform:scaleY(0)}}@keyframes f{from{opacity:0}}');
 }
 
-const clip = (s, n, k) => { const l = wrap(s, n); return l.length > k ? [...l.slice(0, k - 1), cut(l.slice(k - 1).join(' '), n)] : l; };
-const shortDate = (d) => new Date(d).toLocaleString('en', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
-function projCard(p) {
-  const W = 440, H = 214, d = p.desc ? clip(p.desc, 46, 3) : ['no description on GitHub yet'];
-  const st = p.priv ? ['PRIVATE', C.orange] : p.status ? [upper(p.status), C.yellow] : p.url ? ['LIVE', C.green] : null;
-  const pill = st ? `<rect x="22" y="${H - 46}" width="${Math.round(st[0].length * 7.8 + 34)}" height="24" rx="12" fill="${st[1]}" fill-opacity=".14" stroke="${st[1]}" stroke-opacity=".5"/><circle cx="37" cy="${H - 34}" r="3.5" fill="${st[1]}"/>${t(47, H - 30, st[0], { z: 10, f: 'm', c: st[1], ls: 1.2 })}` : '';
-  return svg(W, H, `${card(W, H)}${t(24, 48, cut(p.name, 22), { z: 24, f: 'h', w: 700 })}${p.lang ? t(416, 46, upper(cut(p.lang, 14)), { z: 11, f: 'm', c: C.mute, ls: 2, a: 'end' }) : ''}${d.map((x, k) => t(24, 86 + k * 22, x, { z: 14, c: p.desc ? C.mute : C.dim })).join('')}${pill}${p.pushed ? t(416, H - 30, `updated ${shortDate(p.pushed)}`, { z: 11, f: 'm', c: C.dim, a: 'end' }) : ''}`);
+function projN(p, all) {
+  const W = 440, ml = Math.max(...all.map((q) => (q.desc ? clip2(q.desc, 44, 3).length : 1))), H = 150 + ml * 22, d = p.desc ? clip2(p.desc, 44, 3) : ['no description on GitHub yet'];
+  const st = p.priv ? ['private', N.rust] : p.status ? [p.status, '#9a7a1a'] : p.url ? ['live', N.green] : null;
+  let g = `<defs>${FILT}</defs><rect x="10" y="12" width="${W - 16}" height="${H - 18}" rx="8" fill="${N.ink}"/>${paperBox(4, 6, W - 16, H - 18, N.card)}${tape(W / 2 - 40, 0, 80, -2, TABC[all.indexOf(p) % 5])}`;
+  g += T(26, 52, cut(p.name, 22), { z: 30 }) + (p.lang ? T(W - 30, 50, p.lang.toLowerCase(), { z: 13, b: 1, c: N.mute, a: 'end' }) : '') + d.map((x, k) => T(26, 84 + k * 22, x, { z: 14, b: 1, c: p.desc ? '#4a443d' : N.mute })).join('');
+  if (st) g += `<g transform="rotate(-6 70 ${H - 42})"><rect x="26" y="${H - 56}" width="${Math.round(tw2(st[0], 18) + 26)}" height="26" rx="5" fill="none" stroke="${st[1]}" stroke-width="2"/>${T(38, H - 37, st[0], { z: 18, c: st[1] })}</g>`;
+  if (p.pushed) g += T(W - 30, H - 36, `updated ${md(p.pushed)}`, { z: 15, c: N.mute, a: 'end' });
+  return svg(W, H, g);
 }
-const pbtn = (label, primary) => svg(214, 56, `<rect x="1" y="1" width="212" height="46" rx="12" fill="${primary ? C.peri : C.card}" stroke="${primary ? C.peri : C.line}"/>${t(22, 30, label, { z: 14, f: 'h', w: 700, ls: 1, c: primary ? C.bg : C.text })}${arr(180, 17, 13, primary ? C.bg : C.peri)}`);
-const noteSvg = () => svg(900, 44, t(4, 26, 'A few projects are still in development, so their live links may not work yet.', { z: 13, f: 'm', c: C.mute }));
+const pbtnN = (label, primary) => svg(214, 60, `<defs>${FILT}</defs><rect x="8" y="8" width="200" height="44" rx="10" fill="${primary ? N.rust : N.ink}"/><g filter="url(#r)"><rect x="3" y="3" width="200" height="44" rx="10" fill="${primary ? N.ink : N.paper}" stroke="${N.ink}" stroke-width="2"/></g>${T(26, 32, label, { z: 22, c: primary ? N.paper : N.ink })}${arrowN(168, 17, 14, primary ? N.paper : N.ink)}`);
+const noteN = () => svg(900, 64, `<defs>${FILT}</defs>${paperBox(6, 10, 640, 40, N.sticky, -0.6)}${tape(30, 4, 60, -5, TABC[3])}${T(30, 37, 'a few projects are still in development, so their live links may not work yet', { z: 18 })}`);
 
-async function chessSvg() {
-  const W = 900, H = 300, S = 30, BX = 26, BY = 30, st = await j(`https://api.chess.com/pub/player/${CHESS}/stats`); let game = null;
+function lcN(lc) {
+  const W = 900, H = 290, X1 = 360, RA = [N.paper, '#f8dcc0', '#f4c9a8', '#e9a46f', '#d9733a'];
+  let g = sheet(W, H) + T(58, 60, 'LeetCode', { z: 32 }) + hl(60, 68, 120, TABC[2]) + T(320, 58, lc.user, { z: 13, b: 1, c: N.mute, a: 'end' });
+  const c2 = lc.contest; g += T(58, 92, c2 ? `contest rating ${Math.round(c2.rating)} · top ${c2.top}%` : 'no contest rating yet', { z: 18, c: c2 ? N.rust : N.mute }) + T(58, 112, lc.ranking ? `global rank #${fmt(lc.ranking)}` : '', { z: 13, b: 1, c: N.mute });
+  g += T(58, 168, String(lc.all), { z: 56 }) + T(62 + tw2(String(lc.all), 56), 164, 'solved', { z: 20, c: N.mute });
+  const mx = Math.max(1, lc.easy, lc.medium, lc.hard);
+  [['easy', lc.easy, '#a9cc8e'], ['medium', lc.medium, '#f4c9a8'], ['hard', lc.hard, '#e8a2a2']].forEach(([l, v, cc], i) => { const y = 200 + i * 26; g += T(58, y, l, { z: 17 }) + `<path d="M126 ${y - 6} H${(126 + (150 * v) / mx).toFixed(1)}" stroke="${cc}" stroke-width="12" stroke-linecap="round"/>` + T(320, y, String(v), { z: 18, a: 'end' }); });
+  g += `<line x1="340" y1="40" x2="340" y2="260" stroke="${N.line}" stroke-width="2" stroke-dasharray="4 5"/>` + T(X1, 60, 'submissions, last 12 months', { z: 18 });
+  const byDay = {}; for (const [ts, k] of Object.entries(lc.cal || {})) { const key = new Date(Number(ts) * 1000).toISOString().slice(0, 10); byDay[key] = (byDay[key] || 0) + k; }
+  const end = new Date(); end.setUTCHours(0, 0, 0, 0); const start = new Date(end); start.setUTCDate(start.getUTCDate() - 364); start.setUTCDate(start.getUTCDate() - start.getUTCDay());
+  const cmax = Math.max(1, ...Object.values(byDay)); let total = 0, active = 0, ci = 0;
+  for (const dd = new Date(start); dd <= end; dd.setUTCDate(dd.getUTCDate() + 1)) { const k = dd.toISOString().slice(0, 10), v = byDay[k] || 0, wd = dd.getUTCDay(); if (wd === 0 && dd > start) ci++; if (v) { total += v; active++; }
+    const l = v === 0 ? 0 : v / cmax <= 0.25 ? 1 : v / cmax <= 0.5 ? 2 : v / cmax <= 0.75 ? 3 : 4; g += `<rect x="${(X1 + ci * 9.4).toFixed(1)}" y="${80 + wd * 9.4}" width="7.6" height="7.6" rx="1.5" fill="${RA[l]}" stroke="${N.ink}" stroke-opacity="${l ? 0.4 : 0.15}" stroke-width=".7"/>`; }
+  return svg(W, H, g + T(X1, 200, fmt(total), { z: 40 }) + T(X1, 222, 'submissions', { z: 14, b: 1, c: N.mute }) + T(X1 + 190, 200, String(active), { z: 40 }) + T(X1 + 190, 222, 'active days', { z: 14, b: 1, c: N.mute }));
+}
+function cfN(cf) {
+  const W = 900, H = 290, X1 = 370, X2 = 850, Y1 = 84, Y2 = 230, col = CF_COL[cf.rank] || N.ink;
+  let g = sheet(W, H) + T(58, 60, 'Codeforces', { z: 32 }) + hl(60, 68, 140, TABC[3]) + T(320, 58, cf.handle, { z: 13, b: 1, c: N.mute, a: 'end' }) + T(58, 94, cap(cf.rank), { z: 22, c: col });
+  g += T(58, 160, String(cf.rating || '-'), { z: 56, c: col }) + T(58, 186, `max ${cf.maxRating || '-'} · ${cf.maxRank}`, { z: 13, b: 1, c: N.mute }) + T(58, 222, 'problems solved', { z: 17 }) + T(320, 222, cf.solved == null ? '-' : String(cf.solved), { z: 20, a: 'end' }) + T(58, 250, 'rated contests', { z: 17 }) + T(320, 250, String(cf.contests), { z: 20, a: 'end' });
+  g += `<line x1="340" y1="40" x2="340" y2="260" stroke="${N.line}" stroke-width="2" stroke-dasharray="4 5"/>` + T(X1, 60, 'rating history', { z: 18 }) + `<defs><pattern id="gp2" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M12 0H0V12" fill="none" stroke="${N.blue}" stroke-width=".8"/></pattern></defs><rect x="${X1}" y="${Y1 - 10}" width="${X2 - X1}" height="${Y2 - Y1 + 20}" fill="url(#gp2)"/>`;
+  const hs = cf.history || []; if (hs.length < 2) return svg(W, H, g + T((X1 + X2) / 2, 160, hs.length ? 'one rated contest so far' : 'no rated contests yet', { z: 20, a: 'middle', c: N.mute }));
+  const lo = Math.min(...hs.map((h) => h[1])) - 80, hi = Math.max(...hs.map((h) => h[1])) + 80, t0 = hs[0][0], t1 = hs[hs.length - 1][0], X = (v) => X1 + ((v - t0) / Math.max(1, t1 - t0)) * (X2 - X1), Y = (v) => Y2 - ((v - lo) / (hi - lo)) * (Y2 - Y1);
+  for (const [r, nm] of [[1200, 'pupil'], [1400, 'specialist'], [1600, 'expert'], [1900, 'cand. master'], [2100, 'master']]) if (r > lo && r < hi) g += `<line x1="${X1}" y1="${Y(r).toFixed(1)}" x2="${X2}" y2="${Y(r).toFixed(1)}" stroke="${N.mute}" stroke-dasharray="3 4"/>${T(X1 + 4, Y(r) - 4, `${r} ${nm}`, { z: 13, c: N.mute })}`;
+  g += `<path d="M${hs.map((h) => `${X(h[0]).toFixed(1)} ${Y(h[1]).toFixed(1)}`).join('L')}" fill="none" stroke="${N.red}" stroke-width="2.2" stroke-linejoin="round" pathLength="1" stroke-dasharray="1"><animate attributeName="stroke-dashoffset" from="1" to="0" dur="2s" fill="freeze"/></path>` + hs.map((h, i) => `<circle cx="${X(h[0]).toFixed(1)}" cy="${Y(h[1]).toFixed(1)}" r="${i === hs.length - 1 ? 5 : 2.6}" fill="${i === hs.length - 1 ? col : N.ink}"/>`).join('');
+  return svg(W, H, g + T(X1, 262, new Date(t0).getUTCFullYear(), { z: 14, c: N.mute }) + T(X2, 262, 'now', { z: 14, c: N.mute, a: 'end' }));
+}
+
+async function chessN() {
+  const W = 900, H = 320, S = 30, BX = 60, BY = 40, st = await j(`https://api.chess.com/pub/player/${CHESS}/stats`); let game = null;
   const arch = (await j(`https://api.chess.com/pub/player/${CHESS}/games/archives`))?.archives; for (const u of (arch || []).slice(-2).reverse()) { game = (await j(u))?.games?.at(-1) ?? null; if (game) break; }
-  const fen = game?.fen ?? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', gl = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' }; let sq = '', cs = '';
-  for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) cs += `<rect x="${BX + c * S}" y="${BY + r * S}" width="${S}" height="${S}" fill="${(r + c) % 2 ? '#1c1c1f' : '#2e2e33'}"/>`;
-  fen.split(' ')[0].split('/').forEach((row, r) => { let c = 0; for (const ch of row) { if (/\d/.test(ch)) { c += +ch; continue; } const w = ch === ch.toUpperCase(); sq += `<text x="${BX + c * S + S / 2}" y="${BY + r * S + S * 0.77}" font-size="24" text-anchor="middle" fill="${w ? '#f2f3f7' : '#0b0d14'}" stroke="${w ? '#0b0d14' : '#f2f3f7'}" stroke-width=".5">${gl[ch.toLowerCase()]}</text>`; c++; } });
+  const fen = game?.fen ?? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', gl = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' };
+  let g = sheet(W, H) + `<defs><pattern id="hc" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="4" stroke="${N.ink}" stroke-width=".8" opacity=".45"/></pattern></defs><rect x="${BX - 3}" y="${BY - 3}" width="${8 * S + 6}" height="${8 * S + 6}" fill="none" stroke="${N.ink}" stroke-width="2"/>`;
+  for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) g += `<rect x="${BX + c * S}" y="${BY + r * S}" width="${S}" height="${S}" fill="${(r + c) % 2 ? 'url(#hc)' : N.card}"/>`;
+  fen.split(' ')[0].split('/').forEach((row, r) => { let c = 0; for (const ch of row) { if (/\d/.test(ch)) { c += +ch; continue; } const w = ch === ch.toUpperCase(); g += `<text x="${BX + c * S + S / 2}" y="${BY + r * S + S * 0.77}" font-size="24" text-anchor="middle" fill="${w ? N.card : N.ink}" stroke="${N.ink}" stroke-width="${w ? 1 : 0.4}">${gl[ch.toLowerCase()]}</text>`; c++; } });
   const rt = (k) => st?.[`chess_${k}`]?.last?.rating ?? '-', rec = st?.chess_rapid?.record;
-  const cols = [['rapid', rt('rapid')], ['blitz', rt('blitz')], ['bullet', rt('bullet')]].map(([l, v], i) => `${t(310 + i * 190, 100, String(v), { z: 44, f: 'h', w: 700 })}${t(310 + i * 190, 124, l, { z: 13, c: C.mute })}`).join('');
-  let recS = t(310, 186, 'no rapid record', { z: 12, f: 'm', c: C.mute });
-  if (rec) { const tot = rec.win + rec.loss + rec.draw || 1, bw = 560, a = (rec.win / tot) * bw, dd = (rec.draw / tot) * bw, lo = (rec.loss / tot) * bw; recS = `${t(310, 178, 'rapid record', { z: 12, f: 'm', c: C.mute })}${t(870, 178, `${rec.win}W  ${rec.draw}D  ${rec.loss}L`, { z: 12, f: 'm', a: 'end' })}<rect x="310" y="188" width="${Math.max(0, a - 3).toFixed(1)}" height="8" rx="4" fill="${C.peri}"/><rect x="${(310 + a).toFixed(1)}" y="188" width="${Math.max(0, dd - 3).toFixed(1)}" height="8" rx="4" fill="${C.dim}"/><rect x="${(310 + a + dd).toFixed(1)}" y="188" width="${Math.max(0, lo - 3).toFixed(1)}" height="8" rx="4" fill="${C.orange}"/>`; }
-  let last = t(310, 250, 'no recent game found', { z: 14, c: C.mute });
-  if (game) { const mine = game.white.username.toLowerCase() === CHESS.toLowerCase() ? game.white : game.black, opp = mine === game.white ? game.black : game.white; const res = mine.result === 'win' ? ['Won', C.peri] : ['agreed', 'repetition', 'stalemate', 'insufficient', '50move', 'timevsinsufficient'].includes(mine.result) ? ['Drew', C.mute] : ['Lost', C.orange]; last = `${t(310, 252, res[0], { z: 22, f: 'h', w: 700, c: res[1] })}${t(310 + tw(res[0], 22, 'h') + 14, 252, `vs ${opp.username} (${opp.rating}), ${game.time_class}`, { z: 14 })}`; }
-  return svg(W, H, `${card(W, H)}${cs}${sq}${t(310, 52, 'chess.com', { z: 12, f: 'm', c: C.mute, ls: 2 })}${t(854, 52, CHESS, { z: 13, f: 'm', c: C.peri, a: 'end' })}${arr(860, 43, 10, C.peri)}${cols}${recS}${t(310, 226, 'last game', { z: 12, f: 'm', c: C.mute })}${last}`);
+  g += T(350, 66, 'Chess', { z: 32 }) + hl(352, 74, 70, TABC[0]) + T(850, 64, `${CHESS} on chess.com`, { z: 16, a: 'end', c: N.mute }) + [['rapid', rt('rapid')], ['blitz', rt('blitz')], ['bullet', rt('bullet')]].map(([l, v], i) => T(352 + i * 170, 140, String(v), { z: 48 }) + T(352 + i * 170, 164, l, { z: 15, b: 1, c: N.mute })).join('');
+  if (rec) { const tot = rec.win + rec.loss + rec.draw || 1, bw = 490, a = (rec.win / tot) * bw, dd = (rec.draw / tot) * bw, lo = (rec.loss / tot) * bw; g += T(352, 202, 'rapid record', { z: 16 }) + T(842, 202, `${rec.win}W  ${rec.draw}D  ${rec.loss}L`, { z: 16, a: 'end' }) + `<path d="M356 216 H${(352 + a).toFixed(1)}" stroke="#a9cc8e" stroke-width="10" stroke-linecap="round"/><path d="M${(356 + a).toFixed(1)} 216 H${(352 + a + dd).toFixed(1)}" stroke="${N.line}" stroke-width="10" stroke-linecap="round"/><path d="M${(356 + a + dd).toFixed(1)} 216 H${(352 + a + dd + lo).toFixed(1)}" stroke="#e8a2a2" stroke-width="10" stroke-linecap="round"/>`; }
+  else g += T(352, 206, 'no rapid record yet', { z: 16, c: N.mute });
+  if (game) { const mine = game.white.username.toLowerCase() === CHESS.toLowerCase() ? game.white : game.black, opp = mine === game.white ? game.black : game.white, res = mine.result === 'win' ? ['won', N.green] : ['agreed', 'repetition', 'stalemate', 'insufficient', '50move', 'timevsinsufficient'].includes(mine.result) ? ['drew', N.mute] : ['lost', N.rust]; g += T(352, 262, `last game: ${res[0]}`, { z: 24, c: res[1] }) + T(352, 288, `vs ${opp.username} (${opp.rating}), ${game.time_class}`, { z: 15, b: 1 }); }
+  else g += T(352, 262, 'no recent game found', { z: 20, c: N.mute });
+  return svg(W, H, g);
 }
-
-const btn = (label, primary) => svg(214, 68, `<rect x="6" y="6" width="204" height="56" rx="14" fill="#000"/><rect x="1" y="1" width="204" height="56" rx="14" fill="${primary ? C.yellow : C.card}" stroke="${primary ? C.yellow : C.line}"/>${t(24, 36, upper(label), { z: 15, f: 'h', w: 700, c: primary ? C.bg : C.text, ls: 0.5 })}${arr(172, 22, 14, primary ? C.bg : C.peri)}`);
+const contactN = (label, i) => svg(214, 92, `<defs>${FILT}</defs><g transform="rotate(${i % 2 ? 2 : -2} 107 48)">${paperBox(8, 14, 196, 66, TABC[i % 5])}${tape(77, 6, 60, i % 2 ? 4 : -4, '#ffffff')}${T(28, 56, label, { z: 26 })}${arrowN(164, 36, 16)}</g>`);
 
 // ---------- write ----------
-write('hero.svg', heroSvg());
-const nTools = Object.keys(stack).reduce((a, k) => a + stack[k].length, 0);
-const hasCP = !!(cfData || lcData), order = [['about', 'About', 'WHO'], ['activity', 'Activity', 'LIVE FROM GITHUB'], ['stack', 'Stack', `${nTools} ITEMS`], ['oss', 'Open source', `${totals.merged} MERGED`], ['projects', 'Projects', `${projs.length} SELECTED`], ...(hasCP ? [['cp', 'Problem solving', [lcData && 'LEETCODE', cfData && 'CODEFORCES'].filter(Boolean).join(' · ')]] : []), ['chess', 'Chess', 'CHESS.COM'], ['contact', 'Contact', 'FIND ME']];
-const HD = Object.fromEntries(order.map(([k, ti, de], i) => [k, [i + 1, ti, de]]));
-for (const [k, [n, ti, de]] of Object.entries(HD)) write(`hdr-${k}.svg`, headerSvg(n, ti, de));
-write('about.svg', aboutSvg()); write('stats.svg', statsSvg()); write('heatmap.svg', heatSvg()); write('ecg.svg', ecgSvg());
-const sk = Object.keys(stack); sk.forEach((k, i) => write(`stack-${i}.svg`, stackSvg(k, stack[k]))); const langs = langsSvg(); if (langs) write('langs.svg', langs);
-write('oss.svg', ossSvg());
-projs.forEach((p, i) => write(`proj-${i}.svg`, projCard(p)));
-write('btn-source.svg', pbtn('SOURCE', false)); write('btn-live.svg', pbtn('LIVE', true)); write('btn-none.svg', svg(214, 56, '')); write('proj-note.svg', noteSvg());
-if (lcData) write('lc.svg', lcSvg(lcData)); if (cfData) write('cf.svg', cfSvg(cfData));
-write('chess.svg', await chessSvg());
-const hasMail = cfg.email && !cfg.email.includes('CHANGE_ME'); const contacts = [...(hasMail ? [['Email', `mailto:${cfg.email}`]] : []), ['LinkedIn', cfg.linkedin], ['X', cfg.x], ['GitHub', `https://github.com/${USER}`]].filter(([, u]) => u);
-contacts.forEach(([l], i) => write(`contact-${i}.svg`, btn(l, i === 0)));
+write('hero.svg', heroN()); write('top.svg', topSvg()); write('about.svg', aboutN()); write('stats.svg', statsN()); write('heatmap.svg', heatN()); write('ecg.svg', ecgN());
+const sk = Object.keys(stack); sk.forEach((k, i) => write(`stack-${i}.svg`, stackN(k, stack[k], i))); const langs = langsN(); if (langs) write('langs.svg', langs);
+write('oss.svg', cityN()); projs.forEach((p, i) => write(`proj-${i}.svg`, projN(p, projs))); write('btn-source.svg', pbtnN('source', false)); write('btn-live.svg', pbtnN('live', true)); write('btn-none.svg', svg(214, 60, '')); write('proj-note.svg', noteN());
+if (lcData) write('lc.svg', lcN(lcData)); if (cfData) write('cf.svg', cfN(cfData)); write('chess.svg', await chessN());
+const hasMail = cfg.email && !cfg.email.includes('CHANGE_ME'), contacts = [...(hasMail ? [['email', `mailto:${cfg.email}`]] : []), ['linkedin', cfg.linkedin], ['x', cfg.x], ['github', `https://github.com/${USER}`]].filter(([, u]) => u);
+contacts.forEach(([l], i) => write(`contact-${i}.svg`, contactN(l, i)));
+const hasCP = !!(cfData || lcData), nTools = sk.reduce((a, k) => a + stack[k].length, 0);
+const SECTIONS = [['about', 'About', 'who'], ['activity', 'Activity', 'live from github'], ['stack', 'Stack', `${nTools} tools`], ['open-source', 'Open source', `${totals.merged} merged`], ['projects', 'Projects', `${projs.length} picks`], ...(hasCP ? [['problem-solving', 'Problem solving', [lcData && 'leetcode', cfData && 'codeforces'].filter(Boolean).join(' & ')]] : []), ['chess', 'Chess', 'for fun'], ['contact', 'Contact', 'say hi']];
+const tabW = {}, hdrW = {}; SECTIONS.forEach(([k, ti, no], i) => { const [w, s] = tabSvg(ti, i); tabW[k] = w; write(`tab-${k}.svg`, s); const [w2, s2] = hdrSvg(ti, no, i); hdrW[k] = w2; write(`hdr-${k}.svg`, s2); });
 
 const V = crypto.createHash('md5').update(fs.readdirSync(OA).filter((f) => f.endsWith('.svg')).sort().map((f) => fs.readFileSync(path.join(OA, f), 'utf8')).join('')).digest('hex').slice(0, 8);
-const im = (f, alt, w = '100%') => `<img src="assets/${f}?v=${V}" width="${w}" alt="${esc(alt)}">`, lk = (href, html) => (href ? `<a href="${href}">${html}</a>` : html);
-const pair = (a, fn) => { const o = []; for (let i = 0; i < a.length; i += 2) o.push(a.slice(i, i + 2).map((x, k) => fn(x, i + k)).join(' ')); return o.join('\n'); };
-const cw = contacts.length === 4 ? '23.4%' : '31.5%';
-const readme = [
-  lk(`https://github.com/${USER}`, im('hero.svg', cfg.hero_lead ? `${cfg.name}, ${cfg.hero_lead}` : cfg.name)), 
-  im('hdr-about.svg', 'About'), im('about.svg', 'About me'),
-  im('hdr-activity.svg', 'Activity'), im('stats.svg', 'GitHub stats'), lk(`https://github.com/${USER}`, im('heatmap.svg', 'Contribution heatmap')), lk(`https://github.com/${USER}`, im('ecg.svg', 'Monthly contributions')),
-  im('hdr-stack.svg', 'Stack'), sk.map((k, i) => im(`stack-${i}.svg`, k)).join('\n') + (langs ? `\n${im('langs.svg', 'Languages')}` : ''),
-  im('hdr-oss.svg', 'Open source'), lk(`https://github.com/pulls?q=is%3Apr+author%3A${USER}+is%3Amerged`, im('oss.svg', 'Merged pull requests as a city street')),
-  im('hdr-projects.svg', 'Projects'), (() => { const rows = []; for (let i = 0; i < projs.length; i += 2) { const pr = projs.slice(i, i + 2);
-    rows.push(pr.map((p, k) => lk(p.url || (p.repo ? `https://github.com/${p.repo}` : ''), im(`proj-${i + k}.svg`, p.name, '49%'))).join(' '));
-    rows.push(pr.map((p) => [p.repo ? lk(`https://github.com/${p.repo}`, im('btn-source.svg', `${p.name} source`, '24%')) : im('btn-none.svg', '', '24%'), p.url ? lk(p.url, im('btn-live.svg', `${p.name} live site`, '24%')) : im('btn-none.svg', '', '24%')].join(' ')).join(' ')); }
-    return rows.join('<br>\n') + '<br>\n' + im('proj-note.svg', 'A few projects are still in development, so their live links may not work yet.'); })(),
-  ...(hasCP ? [im('hdr-cp.svg', 'Problem solving'), [lcData && lk(`https://leetcode.com/u/${lcData.user}/`, im('lc.svg', 'LeetCode stats')), cfData && lk(`https://codeforces.com/profile/${cfData.handle}`, im('cf.svg', 'Codeforces stats'))].filter(Boolean).join('\n')] : []),
-  im('hdr-chess.svg', 'Chess'), lk(`https://www.chess.com/member/${CHESS}`, im('chess.svg', 'Chess.com stats')),
-  im('hdr-contact.svg', 'Contact'), contacts.map(([l, u], i) => lk(u, im(`contact-${i}.svg`, l, cw))).join(' '),
-].join('\n');
+const im = (f, alt, w = '100%', h) => `<img src="assets/${f}?v=${V}"${w ? ` width="${w}"` : ''}${h ? ` height="${h}"` : ''} alt="${esc(alt)}">`, lk = (href, html) => (href ? `<a href="${href}">${html}</a>` : html);
+const totTab = SECTIONS.reduce((a, [k]) => a + tabW[k] + 6, 0), navRow = SECTIONS.map(([k, ti]) => lk(`#${k}`, im(`tab-${k}.svg`, ti, `${((tabW[k] + 6) / totTab * 97).toFixed(1)}%`))).join('');
+const backTop = lk('#top', im('top.svg', 'back to top', '150'));
+const body = {
+  about: im('about.svg', 'About me'),
+  activity: `${im('stats.svg', 'GitHub stats')}\n${lk(`https://github.com/${USER}`, im('heatmap.svg', 'Contribution heatmap'))}\n${lk(`https://github.com/${USER}`, im('ecg.svg', 'Monthly contributions'))}`,
+  stack: sk.map((k, i) => im(`stack-${i}.svg`, k)).join('\n') + (langs ? `\n${im('langs.svg', 'Languages')}` : ''),
+  'open-source': lk(`https://github.com/pulls?q=is%3Apr+author%3A${USER}+is%3Amerged`, im('oss.svg', 'Merged pull requests as a city street')),
+  projects: (() => { const r = []; for (let i = 0; i < projs.length; i += 2) { const pr = projs.slice(i, i + 2); r.push(pr.map((p, k) => lk(p.url || (p.repo ? `https://github.com/${p.repo}` : ''), im(`proj-${i + k}.svg`, p.name, '49%'))).join(' ')); r.push(pr.map((p) => [p.repo ? lk(`https://github.com/${p.repo}`, im('btn-source.svg', `${p.name} source`, '24%')) : im('btn-none.svg', '', '24%'), p.url ? lk(p.url, im('btn-live.svg', `${p.name} live site`, '24%')) : im('btn-none.svg', '', '24%')].join(' ')).join(' ')); } return r.join('<br>\n') + '<br>\n' + im('proj-note.svg', 'A few projects are still in development, so their live links may not work yet.'); })(),
+  'problem-solving': [lcData && lk(`https://leetcode.com/u/${lcData.user}/`, im('lc.svg', 'LeetCode stats')), cfData && lk(`https://codeforces.com/profile/${cfData.handle}`, im('cf.svg', 'Codeforces stats'))].filter(Boolean).join('\n'),
+  chess: lk(`https://www.chess.com/member/${CHESS}`, im('chess.svg', 'Chess.com stats')),
+  contact: contacts.map(([l, u], i) => lk(u, im(`contact-${i}.svg`, l, contacts.length === 4 ? '23.4%' : '31.5%'))).join(' '),
+};
+const readme = [`<a name="top"></a>`, lk(`https://github.com/${USER}`, im('hero.svg', cfg.name)), '', navRow, '',
+  ...SECTIONS.map(([k, ti]) => `<a name="${k}"></a>\n\n${im(`hdr-${k}.svg`, ti, String(hdrW[k] + 8))}\n\n${body[k]}\n\n${backTop}\n`)].join('\n');
 fs.writeFileSync(path.join(OUT, 'README.md'), readme);
-console.log('done', { contribs, status: status[0], cards: cards.length, merged: totals.merged, prs: prList.length, v: V });
+console.log('done', { contribs, status: status[0], merged: totals.merged, prs: prList.length, projects: projs.length, v: V });
