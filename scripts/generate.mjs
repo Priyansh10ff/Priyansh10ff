@@ -269,6 +269,31 @@ function ecgN() {
   return svg(W, H, g + lab);
 }
 
+function flightN() {
+  const W = 900, H = 430, G = 350, m = {};
+  for (const d of days) { const k = d.date.slice(0, 7); m[k] = (m[k] || 0) + d.contributionCount; }
+  const keys = Object.keys(m).sort().slice(-12), vals = keys.map((k) => m[k]), mxv = Math.max(1, ...vals), tot = vals.reduce((a, b) => a + b, 0), bi = vals.indexOf(Math.max(...vals, 0));
+  const step = keys.length > 1 ? 720 / (keys.length - 1) : 0, P = keys.map((k, i) => [110 + i * step, G - 34 - Math.sqrt(vals[i] / mxv) * 170]);
+  const pts = [[60, G - 8], ...P, [868, (P.length ? P[P.length - 1][1] : G - 40) + 20]];
+  let d = `M${pts[0][0]} ${pts[0][1]}`;
+  for (let i = 0; i < pts.length - 1; i++) { const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+    d += ` C${(p1[0] + (p2[0] - p0[0]) / 6).toFixed(1)} ${(p1[1] + (p2[1] - p0[1]) / 6).toFixed(1)} ${(p2[0] - (p3[0] - p1[0]) / 6).toFixed(1)} ${(p2[1] - (p3[1] - p1[1]) / 6).toFixed(1)} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`;
+    if (vals.length && i + 1 === bi + 1 && vals[bi] > 0) { const [x, y] = p2, r = 32; d += ` C${(x + r * 1.3).toFixed(1)} ${y.toFixed(1)} ${(x + r * 1.3).toFixed(1)} ${(y - r * 2).toFixed(1)} ${x.toFixed(1)} ${(y - r * 2).toFixed(1)} C${(x - r * 1.3).toFixed(1)} ${(y - r * 2).toFixed(1)} ${(x - r * 1.3).toFixed(1)} ${y.toFixed(1)} ${(x + 1).toFixed(1)} ${y.toFixed(1)}`; } }
+  let g = sheet(W, H) + `<defs><pattern id="gp" width="14" height="14" patternUnits="userSpaceOnUse"><path d="M14 0H0V14" fill="none" stroke="${N.blue}" stroke-width=".7"/></pattern><linearGradient id="sv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f2f2f4"/><stop offset="1" stop-color="#b9b9c0"/></linearGradient><mask id="trail" maskUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}"><path d="${d}" fill="none" stroke="white" stroke-width="34" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"><animate attributeName="stroke-dashoffset" values="1;0;0" keyTimes="0;.85;1" dur="11s" repeatCount="indefinite"/></path></mask></defs><rect x="52" y="96" width="810" height="${G - 96}" fill="url(#gp)" opacity=".55"/>`;
+  g += T(58, 54, 'Year in the air', { z: 32 }) + hl(60, 62, 180, TABC[1]) ;
+  g += `<path d="M52 ${G} H862" stroke="${N.ink}" stroke-width="1.8"/>` + [[150, 24], [180, 40], [380, 30], [410, 18], [600, 36], [630, 22], [780, 28]].map(([x, h]) => `<rect x="${x}" y="${G - h}" width="24" height="${h}" fill="${N.card}" stroke="${N.ink}" stroke-width="1.3"/><rect x="${x + 5}" y="${G - h + 6}" width="5" height="6" fill="${N.hl}" stroke="${N.ink}" stroke-width=".6"/><rect x="${x + 14}" y="${G - h + 6}" width="5" height="6" fill="${N.hl}" stroke="${N.ink}" stroke-width=".6"/>`).join('');
+  keys.forEach((k, i) => { const [x, y] = P[i]; g += T(x, G + 26, new Date(k + '-01T00:00:00Z').toLocaleString('en', { month: 'short', timeZone: 'UTC' }), { z: 16, a: 'middle' }) + `<line x1="${x.toFixed(1)}" y1="${(y + 8).toFixed(1)}" x2="${x.toFixed(1)}" y2="${G}" stroke="${N.ink}" stroke-width=".7" stroke-dasharray="2 4" opacity=".3"/>` + T(x, i === bi ? y + 26 : y - 12, String(vals[i]), { z: 12, b: 1, a: 'middle', c: N.mute }); });
+  if (!keys.length) g += T(450, 220, 'no contribution data yet', { z: 22, a: 'middle', c: N.mute });
+  g += `<g mask="url(#trail)"><path d="${d}" fill="none" stroke="#b9b2a8" stroke-width="10" stroke-linecap="round" stroke-dasharray=".1 14" opacity=".7"/><path d="${d}" fill="none" stroke="#d9d3c9" stroke-width="6" stroke-linecap="round" stroke-dasharray=".1 10" stroke-dashoffset="4"/></g>`;
+  const wheel = (x) => `<circle cx="${x}" cy="17" r="6" fill="${N.ink}"/><circle cx="${x}" cy="17" r="3.6" fill="#55555c" stroke="#9a9aa2" stroke-width=".6"/>` + [0, 72, 144, 216, 288].map((a) => `<line x1="${x}" y1="17" x2="${(x + Math.cos((a * Math.PI) / 180) * 3.4).toFixed(1)}" y2="${(17 + Math.sin((a * Math.PI) / 180) * 3.4).toFixed(1)}" stroke="#c9c9cf" stroke-width=".8"/>`).join('');
+  const flame = (x) => `<path class="fl" d="M${x - 3} 21 L${x - 5} 31 L${x - 1} 26 L${x + 1} 33 L${x + 3} 21Z" fill="#f0a73a" stroke="${N.ink}" stroke-width=".9"/>`;
+  const car = `<g transform="translate(-30 -14)">${flame(18)}${flame(44)}<path d="M2 9 L4 4 L22 1.5 L40 4.5 L60 10.5 L61 14 L58 17 H3 Z" fill="url(#sv)" stroke="${N.ink}" stroke-width="1.4" stroke-linejoin="round"/><path d="M6 4.2 L22 2 L39 4.8 L33 7.4 L9 7.6 Z" fill="#3a3330" stroke="${N.ink}" stroke-width="1"/><path d="M3 15 H58 L57 18 H4Z" fill="#3a3a40" stroke="${N.ink}" stroke-width="1"/><path d="M59.5 12.2 L61 12.6" stroke="#ffffff" stroke-width="1.6"/><path d="M48 9.6 L60 12" stroke="#ffffff" stroke-width=".8" opacity=".9"/>${wheel(14)}${wheel(47)}</g>`;
+  g += `<g><animateMotion path="${d}" dur="11s" repeatCount="indefinite" rotate="auto" keyPoints="0;1;1" keyTimes="0;.85;1" calcMode="linear"/>${car}</g>`;
+  const bm = keys.length ? new Date(keys[bi] + '-01T00:00:00Z').toLocaleString('en', { month: 'short', timeZone: 'UTC' }) : '-';
+  g += T(862, 50, `${fmt(tot)} contributions · best: ${bm} ${keys.length ? vals[bi] : 0}`, { z: 18, a: 'end' }) + T(862, 70, 'altitude = contributions · flips at the best month', { z: 14, a: 'end', c: N.rust });
+  return svg(W, H, g, '.fl{transform-box:fill-box;transform-origin:50% 0%;animation:fk .12s steps(2) infinite}@keyframes fk{50%{opacity:.5;transform:scaleY(.6)}}');
+}
+
 function stackN(title, items, i) {
   const W = 900; let x = 60, y = 78, rows = 1, out = '';
   items.forEach((n, k) => { const has = !!ICONS[n.toLowerCase()], w = Math.round(tw2(n, 15, 1) + (has ? 50 : 36)); if (x + w > W - 40) { x = 60; y += 48; rows++; }
@@ -361,7 +386,7 @@ async function chessN() {
 const contactN = (label, i) => svg(214, 92, `<defs>${FILT}</defs><g transform="rotate(${i % 2 ? 2 : -2} 107 48)">${paperBox(8, 14, 196, 66, TABC[i % 5])}${tape(77, 6, 60, i % 2 ? 4 : -4, '#ffffff')}${T(28, 56, label, { z: 26 })}${arrowN(164, 36, 16)}</g>`);
 
 // ---------- write ----------
-write('hero.svg', heroN()); write('top.svg', topSvg()); write('about.svg', aboutN()); write('stats.svg', statsN()); write('heatmap.svg', heatN()); write('ecg.svg', ecgN());
+write('hero.svg', heroN()); write('top.svg', topSvg()); write('about.svg', aboutN()); write('stats.svg', statsN()); write('heatmap.svg', heatN()); write('flight.svg', flightN());
 const sk = Object.keys(stack); sk.forEach((k, i) => write(`stack-${i}.svg`, stackN(k, stack[k], i))); const langs = langsN(); if (langs) write('langs.svg', langs);
 write('oss.svg', cityN()); projs.forEach((p, i) => write(`proj-${i}.svg`, projN(p, projs))); write('btn-source.svg', pbtnN('source', false)); write('btn-live.svg', pbtnN('live', true)); write('btn-none.svg', svg(214, 60, '')); write('proj-note.svg', noteN());
 if (lcData) write('lc.svg', lcN(lcData)); if (cfData) write('cf.svg', cfN(cfData)); write('chess.svg', await chessN());
@@ -377,7 +402,7 @@ const totTab = SECTIONS.reduce((a, [k]) => a + tabW[k] + 6, 0), navRow = SECTION
 const backTop = lk('#top', im('top.svg', 'back to top', '150'));
 const body = {
   about: im('about.svg', 'About me'),
-  activity: `${im('stats.svg', 'GitHub stats')}\n${lk(`https://github.com/${USER}`, im('heatmap.svg', 'Contribution heatmap'))}\n${lk(`https://github.com/${USER}`, im('ecg.svg', 'Monthly contributions'))}`,
+  activity: `${im('stats.svg', 'GitHub stats')}\n${lk(`https://github.com/${USER}`, im('heatmap.svg', 'Contribution heatmap'))}\n${lk(`https://github.com/${USER}`, im('flight.svg', 'Monthly contributions as a flying car route'))}`,
   stack: sk.map((k, i) => im(`stack-${i}.svg`, k)).join('\n') + (langs ? `\n${im('langs.svg', 'Languages')}` : ''),
   'open-source': lk(`https://github.com/pulls?q=is%3Apr+author%3A${USER}+is%3Amerged`, im('oss.svg', 'Merged pull requests as a city street')),
   projects: (() => { const r = []; for (let i = 0; i < projs.length; i += 2) { const pr = projs.slice(i, i + 2); r.push(pr.map((p, k) => lk(p.url || (p.repo ? `https://github.com/${p.repo}` : ''), im(`proj-${i + k}.svg`, p.name, '49%'))).join(' ')); r.push(pr.map((p) => [p.repo ? lk(`https://github.com/${p.repo}`, im('btn-source.svg', `${p.name} source`, '24%')) : im('btn-none.svg', '', '24%'), p.url ? lk(p.url, im('btn-live.svg', `${p.name} live site`, '24%')) : im('btn-none.svg', '', '24%')].join(' ')).join(' ')); } return r.join('<br>\n') + '<br>\n' + im('proj-note.svg', 'A few projects are still in development, so their live links may not work yet.'); })(),
