@@ -93,5 +93,7 @@
   "car_livery": "purple-sector",
   "show_pit": true,
   "leetcode_user": "_priyansh_10",
-  "codeforces_user": "Priyansh_10"
+  "codeforces_user": "Priyansh_10",
+  "drift_car": "red",
+  "heat_palette": "ice"
 }

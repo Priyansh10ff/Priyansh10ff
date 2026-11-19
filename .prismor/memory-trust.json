@@ -1,0 +1,36 @@
+{
+  "schema": "prismor.memory-integrity.v1",
+  "files": {
+    "C:\\Users\\priyansh\\CLAUDE.md": {
+      "sha256": "fbf962379322346474bf87d2a18a99a5e509ba7bcf61bb01506a101c9110a015",
+      "first_seen_at": "2026-11-19T14:20:29.297603+00:00",
+      "first_seen_commit": "c0a1a32",
+      "last_approved_at": "2026-11-19T14:20:29.297603+00:00",
+      "last_approved_commit": "c0a1a32",
+      "mode": "trusted",
+      "signing_key_id": null
+    },
+    "C:\\Users\\priyansh\\AGENTS.md": {
+      "sha256": "f4b5a25993ae330ec12ef83570e615ef0450f170eb1479f1457b4171f0d01ad6",
+      "first_seen_at": "2026-11-19T14:20:29.366072+00:00",
+      "first_seen_commit": "c0a1a32",
+      "last_approved_at": "2026-11-19T14:20:29.366072+00:00",
+      "last_approved_commit": "c0a1a32",
+      "mode": "trusted",
+      "signing_key_id": null
+    },
+    "C:\\Users\\priyansh\\.cursorrules": {
+      "sha256": "f4b5a25993ae330ec12ef83570e615ef0450f170eb1479f1457b4171f0d01ad6",
+      "first_seen_at": "2026-11-19T14:20:29.427833+00:00",
+      "first_seen_commit": "c0a1a32",
+      "last_approved_at": "2026-11-19T14:20:29.427833+00:00",
+      "last_approved_commit": "c0a1a32",
+      "mode": "trusted",
+      "signing_key_id": null
+    }
+  },
+  "signing": {
+    "enabled": false,
+    "public_keys": {}
+  }
+}

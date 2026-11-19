@@ -226,33 +226,79 @@ function statsN() {
 }
 
 function heatN() {
-  const W = 900, H = 420, X0 = 66, Y0 = 176, P = 14.2, LT = 3.5, max = Math.max(1, ...days.map((d) => d.contributionCount));
-  const RA = [N.paper, '#d7e6c7', '#a9cc8e', '#6fa85a', '#b694d6'], lvl = (c) => (c === 0 ? 0 : c / max <= 0.25 ? 1 : c / max <= 0.5 ? 2 : c / max <= 0.75 ? 3 : 4);
+  // Night track: cells light up behind a top-down car that drifts a donut around the best day, then loops.
+  const W = 900, H = 420, X0 = 66, Y0 = 156, P = 14.2, CS = 11, D = 10, V = 200, R = 34;
+  const max = Math.max(1, ...days.map((d) => d.contributionCount)), lvl = (c) => (c === 0 ? 0 : c / max <= 0.25 ? 1 : c / max <= 0.5 ? 2 : c / max <= 0.75 ? 3 : 4);
+  const PALS = { ice: ['#18222c', '#0f4c5c', '#12808f', '#2ec4c6', '#a7f3e8'], neon: ['#1d1630', '#4c1d95', '#8b2fc9', '#e0399a', '#ff9f43'] };
+  const CARS = { red: { body: '#e1251b', shade: '#8f1209', hi: '#ff7a5c', stripe: '#f5f5f5', wing: '#2a0d0b' }, yellow: { body: '#ffc21a', shade: '#a87300', hi: '#fff0a8', stripe: '#141414', wing: '#3a2a00' } };
+  const RA = PALS[cfg.heat_palette] || PALS.ice, CAR = CARS[cfg.drift_car] || CARS.red, GOLD = '#ffd166', DARK = '#0b0c12', DIM = '#17181f';
   const bestDay = days.reduce((b, d) => (d.contributionCount > (b?.contributionCount ?? -1) ? d : b), null), pos = {};
   weeks.forEach((w, ci) => w.contributionDays.forEach((d) => { pos[d.date] = [X0 + ci * P, Y0 + d.weekday * P]; }));
+  const gridR = X0 + Math.max(1, weeks.length) * P - (P - CS), PX = 44, PY = 112, PW = 822, PH = 182;
+  const kt = (s) => Math.min(1, Math.max(0, s / D)).toFixed(4);
   let g = sheet(W, H) + T(58, 76, fmt(contribs), { z: 44 }) + T(60, 100, 'contributions, last 12 months', { z: 13, b: 1, c: N.mute });
-  g += [0, 1, 2, 3, 4].map((i) => `<circle cx="${396 + i * 27}" cy="52" r="10" fill="${N.paper}" stroke="${N.ink}" stroke-width="2"><animate attributeName="fill" values="${N.paper};${N.red};${N.paper}" keyTimes="0;${((0.4 + i * 0.5) / LT).toFixed(3)};${(3.1 / LT).toFixed(3)}" dur="${LT}s" calcMode="discrete" fill="freeze"/></circle>`).join('');
-  g += T(450, 92, `LAP ${days.slice(-365).filter((d) => d.contributionCount).length} / 365`, { z: 20, a: 'middle' }) + T(842, 76, `${best}d longest · ${cur}d now`, { z: 22, a: 'end' }) + T(842, 100, 'streaks', { z: 13, b: 1, c: N.mute, a: 'end' });
-  if (weeks.length) { const n = weeks.length, ca = Math.floor(n / 3), cb = Math.floor((2 * n) / 3), secs = [[0, ca - 1], [ca, cb - 1], [cb, n - 1]].map(([a, b]) => ({ a, b, t: weeks.slice(a, b + 1).flatMap((w) => w.contributionDays).reduce((s, d) => s + d.contributionCount, 0) })), bt = Math.max(...secs.map((s) => s.t));
-    secs.forEach((s, k) => { const x = X0 + s.a * P, col = s.t === bt ? TABC[4] : k && s.t < secs[k - 1].t ? TABC[2] : TABC[0]; g += `<path d="M${x + 4} 128 H${x + (s.b - s.a + 1) * P - 8}" stroke="${col}" stroke-width="10" stroke-linecap="round"/>${T(x + 4, 150, `S${k + 1}  ${fmt(s.t)}`, { z: 15 })}`; }); }
+  g += `<rect x="388" y="52" width="124" height="30" rx="15" fill="none" stroke="${CAR.body}" stroke-width="2"/>` + T(450, 73, 'DRIFT LAP', { z: 18, a: 'middle', c: CAR.body });
+  if (bestDay?.contributionCount) g += T(450, 100, `donut on ${new Date(bestDay.date + 'T00:00:00Z').toLocaleString('en', { month: 'short', day: 'numeric', timeZone: 'UTC' })} · ${bestDay.contributionCount} that day`, { z: 13, b: 1, c: N.mute, a: 'middle' });
+  g += T(842, 76, `${best}d longest · ${cur}d now`, { z: 22, a: 'end' }) + T(842, 100, 'streaks', { z: 13, b: 1, c: N.mute, a: 'end' });
+  // panel
+  g += `<rect x="${PX + 6}" y="${PY + 6}" width="${PW}" height="${PH}" rx="14" fill="${N.ink}"/><rect x="${PX}" y="${PY}" width="${PW}" height="${PH}" rx="14" fill="${DARK}" stroke="${N.ink}" stroke-width="2"/>`;
+  g += `<defs><clipPath id="pn"><rect x="${PX + 1}" y="${PY + 1}" width="${PW - 2}" height="${PH - 2}" rx="13"/></clipPath><filter id="sm" x="-1" y="-1" width="3" height="3"><feGaussianBlur stdDeviation="3"/></filter><filter id="gl" x="-1" y="-1" width="3" height="3"><feGaussianBlur stdDeviation="2.5"/></filter>`
+    + `<linearGradient id="cb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${CAR.shade}"/><stop offset=".3" stop-color="${CAR.body}"/><stop offset=".5" stop-color="${CAR.hi}"/><stop offset=".7" stop-color="${CAR.body}"/><stop offset="1" stop-color="${CAR.shade}"/></linearGradient>`
+    + `<linearGradient id="bm" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff6d6" stop-opacity=".4"/><stop offset="1" stop-color="#fff6d6" stop-opacity="0"/></linearGradient>`
+    + `<linearGradient id="eg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="${CAR.hi}" stop-opacity=".3"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>`;
   let lastM = -1; const marks = []; weeks.forEach((w, ci) => { const m = new Date(w.contributionDays[0].date + 'T00:00:00Z').getUTCMonth(); if (m !== lastM) { marks.push([ci, m]); lastM = m; } });
   if (marks.length > 1 && marks[1][0] - marks[0][0] < 4) marks.shift();
-  for (const [ci, m] of marks) if (ci < weeks.length - 2) g += T(X0 + ci * P, Y0 - 6, new Date(Date.UTC(2000, m, 1)).toLocaleString('en', { month: 'short' }), { z: 14, c: N.mute });
-  for (const d of days) { const [x, y] = pos[d.date], l = lvl(d.contributionCount), rot = ((Date.parse(d.date) / 864e5) % 7 - 3) * 1.2; g += `<rect class="c" style="animation-delay:${(LT + (x - X0) / P * 0.02).toFixed(2)}s" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="11" height="11" rx="2" fill="${RA[l]}" stroke="${N.ink}" stroke-width=".8" stroke-opacity="${l ? 0.55 : 0.2}" transform="rotate(${rot.toFixed(1)} ${(x + 5.5).toFixed(1)} ${(y + 5.5).toFixed(1)})"/>${streakDates.has(d.date) ? `<circle cx="${(x + 5.5).toFixed(1)}" cy="${(y + 5.5).toFixed(1)}" r="1.8" fill="${N.rust}"/>` : ''}`; }
-  if (!days.length) g += T(450, 230, 'no contribution data yet', { z: 22, a: 'middle', c: N.mute });
-  if (bestDay && bestDay.contributionCount && pos[bestDay.date]) { const [x, y] = pos[bestDay.date]; g += `<ellipse cx="${x + 5.5}" cy="${y + 5.5}" rx="12" ry="10" fill="none" stroke="${N.red}" stroke-width="2"/>${T(x - 6, y - 10, 'FL', { z: 16, c: N.red })}`; }
-  const fx = X0 + weeks.length * P + 4; if (weeks.length) for (let r = 0; r < 9; r++) for (let k = 0; k < 2; k++) g += `<rect x="${fx + k * 6}" y="${Y0 + r * 11}" width="6" height="11" fill="${(r + k) % 2 ? N.ink : N.paper}" stroke="${N.ink}" stroke-width=".5"/>`;
-  const laneY = 300, tags = [];
+  for (const [ci, m] of marks) if (ci < weeks.length - 2) g += T(X0 + ci * P, Y0 - 9, new Date(Date.UTC(2000, m, 1)).toLocaleString('en', { month: 'short' }), { z: 12, b: 1, c: '#6b6b75' });
+  if (!days.length) { g += T(450, 215, 'no contribution data yet', { z: 22, a: 'middle', c: '#8b8b95' }); }
+  // timing (seconds): car enters at x=-80, reaches the best day at t1, spins until t2, exits at t3
+  const has = !!bestDay?.contributionCount && !!pos[bestDay.date];
+  const [bx0, by0] = has ? pos[bestDay.date] : [gridR, Y0 + 3 * P], bx = bx0 + CS / 2, ly = by0 + CS / 2, row = has ? new Date(bestDay.date + 'T00:00:00Z').getUTCDay() : 3;
+  const dir = row <= 3 ? 1 : -1, cy = ly + dir * R, sw = dir > 0 ? 1 : 0, spin = has ? 2 : 0;
+  const t1 = (bx + 80) / V, t2 = t1 + spin, t3 = t2 + (W + 80 - bx) / V, tg0 = (X0 + 80) / V, tgR = t2 + (gridR - bx) / V;
+  // cells: dim base, coloured layer wiped in by an animated clip
+  const cells = (fill) => days.map((d) => { const [x, y] = pos[d.date]; return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${CS}" height="${CS}" rx="2.5" fill="${fill(d)}"/>`; }).join('');
+  g += cells(() => DIM);
+  const rw = (v) => Math.max(0, v).toFixed(1), gw = gridR - X0 + 2;
+  g += `<defs><clipPath id="rv"><rect x="${X0 - 1}" y="${Y0 - 2}" height="${7 * P + 4}" width="0"><animate attributeName="width" values="0;0;${rw(bx - X0)};${rw(bx - X0)};${rw(gw)};${rw(gw)};0;0" keyTimes="0;${kt(tg0)};${kt(t1)};${kt(t2)};${kt(tgR)};.955;.975;1" dur="${D}s" repeatCount="indefinite"/></rect></clipPath></defs>`;
+  let lit = cells((d) => (has && d.date === bestDay.date ? GOLD : RA[lvl(d.contributionCount)]));
+  lit += days.filter((d) => streakDates.has(d.date)).map((d) => { const [x, y] = pos[d.date]; return `<circle cx="${(x + CS / 2).toFixed(1)}" cy="${(y + CS / 2).toFixed(1)}" r="1.6" fill="${N.hl}"/>`; }).join('');
+  if (has) lit = `<rect x="${bx0 - 1}" y="${by0 - 1}" width="${CS + 2}" height="${CS + 2}" rx="3" fill="${GOLD}" filter="url(#gl)"/>` + lit;
+  g += `<g clip-path="url(#rv)">${lit}</g>`;
+  if (weeks.length) { const fx = gridR + 6; for (let r = 0; r < 9; r++) for (let k = 0; k < 2; k++) g += `<rect x="${fx + k * 5}" y="${Y0 + r * 11}" width="5" height="11" fill="${(r + k) % 2 ? '#3a3a44' : '#e9e9ef'}"/>`; }
+  if (days.length) {
+    let fx = `<rect y="${Y0 - 6}" height="${7 * P + 8}" width="34" fill="url(#eg)" x="${X0 - 17}"><animate attributeName="x" values="${X0 - 17};${X0 - 17};${bx - 17};${bx - 17};${gridR - 17};${gridR - 17}" keyTimes="0;${kt(tg0)};${kt(t1)};${kt(t2)};${kt(tgR)};1" dur="${D}s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;${kt(tg0)};${kt(tgR)};${kt(tgR + 0.3)};1" dur="${D}s" repeatCount="indefinite"/></rect>`;
+    if (has) {
+      // skid marks (drawn during the spin), smoke puffs left behind, gold ring once the car moves on
+      const ring = (r) => `<path d="M${bx} ${(cy - dir * r).toFixed(1)} A${r} ${r} 0 1 ${sw} ${bx} ${(cy + dir * r).toFixed(1)} A${r} ${r} 0 1 ${sw} ${bx} ${(cy - dir * r).toFixed(1)}" pathLength="1" fill="none" stroke="#000" stroke-width="3.2" stroke-dasharray="1" stroke-dashoffset="1" opacity=".55"><animate attributeName="stroke-dashoffset" values="1;1;0;0;1" keyTimes="0;${kt(t1)};${kt(t2)};.97;1" dur="${D}s" repeatCount="indefinite"/><animate attributeName="opacity" values=".55;.55;0;0" keyTimes="0;.955;.97;1" dur="${D}s" repeatCount="indefinite"/></path>`;
+      fx += ring(R - 9) + ring(R + 9);
+      const puff = (x, y, t) => { const p = t / D; return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5" fill="#ececf4" opacity="0" filter="url(#sm)"><animate attributeName="opacity" values="0;0;.7;0;0" keyTimes="0;${p.toFixed(4)};${(p + 0.005).toFixed(4)};${(p + 0.16).toFixed(4)};1" dur="${D}s" repeatCount="indefinite"/><animate attributeName="r" values="5;5;5;19;19" keyTimes="0;${p.toFixed(4)};${(p + 0.005).toFixed(4)};${(p + 0.16).toFixed(4)};1" dur="${D}s" repeatCount="indefinite"/></circle>`; };
+      for (let k = 0; k < 16; k++) { const s = k / 15, th = -dir * Math.PI / 2 + dir * 2 * Math.PI * Math.max(0, s - 0.03); fx += puff(bx + (R + 7) * Math.cos(th), cy + (R + 7) * Math.sin(th), t1 + s * spin); }
+      [[14, 0.05], [30, 0.12], [46, 0.2]].forEach(([dx, dt]) => { fx += puff(bx + dx - 28, ly + (dx % 3) - 1, t2 + dt); });
+      fx += `<circle cx="${bx}" cy="${ly}" r="11" fill="none" stroke="${GOLD}" stroke-width="2" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;${kt(t2)};${kt(t2 + 0.25)};.95;.965;1" dur="${D}s" repeatCount="indefinite"/></circle>`;
+    }
+    // the car: top-down, nose along +x, centred on the motion point
+    const car = `<g transform="scale(.72) translate(-38 -18)"><path d="M73 11 L118 -6 L118 42 L73 25 Z" fill="url(#bm)"/><ellipse cx="40" cy="21" rx="38" ry="16" fill="#000" opacity=".5"/>`
+      + [[11, 1, 13, 6.5], [11, 28.5, 13, 6.5], [54, 2.5, 11, 5.5], [54, 28, 11, 5.5]].map(([x, y, w, h]) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2" fill="#09090b"/>`).join('')
+      + `<path d="M4 9 C4 6 7 4.5 11 4.5 L20 4 C24 4 26 5.5 30 6 L40 7 C46 7 50 5 56 5 C62 5 66 7 70 10 C73 12 75 15 75 18 C75 21 73 24 70 26 C66 29 62 31 56 31 C50 31 46 29 40 29 L30 30 C26 30.5 24 32 20 32 L11 31.5 C7 31.5 4 30 4 27 Z" fill="url(#cb)" stroke="${CAR.shade}" stroke-width=".6"/>`
+      + `<rect x="1" y="3" width="5" height="30" rx="1.5" fill="${CAR.wing}"/><rect x="4.2" y="8" width="1.6" height="6" rx=".8" fill="#ff3b30"/><rect x="4.2" y="22" width="1.6" height="6" rx=".8" fill="#ff3b30"/>`
+      + [[7, 15.4, 16], [7, 19, 16], [55, 15.4, 18], [55, 19, 18]].map(([x, y, w]) => `<rect x="${x}" y="${y}" width="${w}" height="1.6" rx=".8" fill="${CAR.stripe}" opacity=".9"/>`).join('')
+      + `<path d="M12 11 L22 10.5 M12 25 L22 25.5" stroke="${CAR.shade}" stroke-width="1" stroke-linecap="round"/><path d="M28 11 C34 9.5 44 9.5 50 12 C53 13.5 54 16 54 18 C54 20 53 22.5 50 24 C44 26.5 34 26.5 28 25 C25 24 24 21 24 18 C24 15 25 12 28 11 Z" fill="#0e131d"/><path d="M44 11.5 C48.5 12.5 51.5 14.5 52.5 17 L48 17 C47 15 45.5 13.5 43 12.5 Z" fill="#fff" opacity=".28"/>`
+      + `<ellipse cx="47" cy="6" rx="2.8" ry="1.4" fill="${CAR.body}" stroke="${CAR.shade}" stroke-width=".5"/><ellipse cx="47" cy="30" rx="2.8" ry="1.4" fill="${CAR.body}" stroke="${CAR.shade}" stroke-width=".5"/><path d="M69 9.5 L73 12 L72.5 13.6 L68 11.6 Z" fill="#fff6d0"/><path d="M69 26.5 L73 24 L72.5 22.4 L68 24.4 Z" fill="#fff6d0"/></g>`;
+    const path = has ? `M-80 ${ly} H${bx} A${R} ${R} 0 1 ${sw} ${bx} ${(ly + 2 * dir * R).toFixed(1)} A${R} ${R} 0 1 ${sw} ${bx} ${ly} H${W + 80}` : `M-80 ${ly} H${W + 80}`;
+    const L1 = bx + 80, L2 = has ? 2 * Math.PI * R : 0, Lt = W + 160 + L2;
+    const kp = has ? `0;${(L1 / Lt).toFixed(4)};${((L1 + L2) / Lt).toFixed(4)};1;1` : '0;1;1', kts = has ? `0;${kt(t1)};${kt(t2)};${kt(t3)};1` : `0;${kt(t3)};1`;
+    const yaw = has ? `<animateTransform attributeName="transform" type="rotate" values="0;0;${-dir * -40};${-dir * -36};0;0" keyTimes="0;${kt(t1)};${kt(t1 + 0.3)};${kt(t2 - 0.3)};${kt(t2)};1" dur="${D}s" repeatCount="indefinite"/>` : '';
+    fx += `<g><animateMotion path="${path}" dur="${D}s" repeatCount="indefinite" rotate="auto" keyPoints="${kp}" keyTimes="${kts}" calcMode="linear"/><g>${yaw}${car}</g></g>`;
+    g += `<g clip-path="url(#pn)">${fx}</g>`;
+  }
+  // PIT / DNF tags under the track for the longest breaks
+  const tags = [];
   if (days.length && cfg.show_pit !== false) { const gaps = []; let gs = -1; days.forEach((d, i) => { if (!d.contributionCount) { if (gs < 0) gs = i; } else { if (gs >= 0 && i - gs >= 4) gaps.push({ s: gs, n: i - gs }); gs = -1; } }); gaps.sort((a, b) => b.n - a.n);
-    gaps.slice(0, 8).forEach((gp, k) => { const p = pos[days[gp.s].date]; if (p && tags.every((t) => Math.abs(t.x - p[0]) > 46)) tags.push({ x: p[0], dnf: k === 0 }); }); }
-  g += `<path d="M${X0} ${laneY} H${fx + 12}" stroke="${N.ink}" stroke-width="1.6" stroke-dasharray="7 6"/>` + tags.map((t) => `${paperBox(t.x, laneY + 8, 42, 22, N.paper)}${T(t.x + 21, laneY + 25, t.dnf ? 'DNF' : 'PIT', { z: 16, a: 'middle', c: t.dnf ? N.rust : N.ink })}`).join('');
-  if (days.length) { const L0 = X0 + 10, L1 = fx + 6, sp = L1 - L0, drive = 7, st = [...tags].sort((a, b) => a.x - b.x).map((t) => ({ f: Math.min(0.97, Math.max(0.03, (t.x + 21 - L0) / sp)), d: t.dnf ? 1.4 : 0.7 })), dur = drive + st.reduce((q, s) => q + s.d, 0) + 1.2, kp = [0], kt = [0]; let tc = 0, lf = 0;
-    for (const s of st) { tc += (s.f - lf) * drive; kp.push(s.f); kt.push(tc); tc += s.d; kp.push(s.f); kt.push(tc); lf = s.f; } tc += (1 - lf) * drive; kp.push(1); kt.push(tc); kp.push(1); kt.push(dur);
-    const car = `<g fill="none" stroke="${N.ink}" stroke-width="1.8" stroke-linejoin="round"><path d="M-22 -2 h8 l4 -8 h10 l3 6 h18 l6 4 v4 h-49z" fill="${N.card}"/><path d="M-26 -12 v12 M-29 -12 h8"/><circle cx="-14" cy="4" r="5" fill="${N.ink}"/><circle cx="16" cy="4" r="5" fill="${N.ink}"/></g><circle cx="-2" cy="-10" r="3" fill="${N.red}"/>`;
-    g += `<g opacity="0"><set attributeName="opacity" to="1" begin="${LT + 1.1}s" fill="freeze"/><g><animateMotion path="M${L0} ${laneY - 9}H${L1}" dur="${dur.toFixed(2)}s" begin="${LT + 1.1}s" repeatCount="indefinite" keyPoints="${kp.map((v) => v.toFixed(4)).join(';')}" keyTimes="${kt.map((v, i) => (i === kt.length - 1 ? '1' : (v / dur).toFixed(4))).join(';')}" calcMode="linear"/>${car}</g></g>`; }
-  g += T(66, 370, 'circled: fastest lap · dots: longest streak · PIT: 4+ days off · DNF: longest break · checkered: this week', { z: 15, c: N.mute });
-  g += T(700, 396, 'less', { z: 14, c: N.mute, a: 'end' }) + RA.map((c, i) => `<rect x="${708 + i * 18}" y="384" width="13" height="13" rx="2" fill="${c}" stroke="${N.ink}" stroke-opacity=".5"/>`).join('') + T(802, 396, 'more', { z: 14, c: N.mute });
-  return svg(W, H, g, '.c{animation:f .3s ease-out backwards}@keyframes f{from{opacity:0}}');
+    gaps.slice(0, 8).forEach((gp, k) => { const p = pos[days[gp.s].date]; if (p && tags.every((t) => Math.abs(t.x - p[0]) > 46)) tags.push({ x: Math.min(p[0], PX + PW - 44), dnf: k === 0 }); }); }
+  g += tags.map((t) => `<path d="M${t.x + 21} ${PY + PH} v8" stroke="${N.ink}" stroke-width="1.6"/>${paperBox(t.x, PY + PH + 8, 42, 22, N.paper)}${T(t.x + 21, PY + PH + 25, t.dnf ? 'DNF' : 'PIT', { z: 16, a: 'middle', c: t.dnf ? N.rust : N.ink })}`).join('');
+  g += T(66, 362, 'gold: best day (the donut) · dots: longest streak · PIT: 4+ days off · DNF: longest break · flag: this week', { z: 15, c: N.mute });
+  g += T(640, 394, 'less', { z: 14, c: N.mute, a: 'end' }) + RA.map((c, i) => `<rect x="${648 + i * 18}" y="382" width="13" height="13" rx="2.5" fill="${c}" stroke="${N.ink}" stroke-opacity=".5"/>`).join('') + T(742, 394, 'more', { z: 14, c: N.mute }) + `<rect x="790" y="382" width="13" height="13" rx="2.5" fill="${GOLD}" stroke="${N.ink}" stroke-opacity=".5"/>` + T(808, 394, 'best', { z: 14, c: N.mute });
+  return svg(W, H, g);
 }
 
 function ecgN() {
