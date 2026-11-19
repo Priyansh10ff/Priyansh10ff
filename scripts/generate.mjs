@@ -238,17 +238,26 @@ function heatN() {
   let lastM = -1; const marks = []; weeks.forEach((w, ci) => { const m = new Date(w.contributionDays[0].date + 'T00:00:00Z').getUTCMonth(); if (m !== lastM) { marks.push([ci, m]); lastM = m; } });
   if (marks.length > 1 && marks[1][0] - marks[0][0] < 4) marks.shift();
   for (const [ci, m] of marks) if (ci < weeks.length - 2) g += T(X0 + ci * P, Y0 - 6, new Date(Date.UTC(2000, m, 1)).toLocaleString('en', { month: 'short' }), { z: 14, c: N.mute });
-  for (const d of days) { const [x, y] = pos[d.date], l = lvl(d.contributionCount), rot = ((Date.parse(d.date) / 864e5) % 7 - 3) * 1.2; g += `<rect class="c" style="animation-delay:${(LT + (x - X0) / P * 0.02).toFixed(2)}s" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="11" height="11" rx="2" fill="${RA[l]}" stroke="${N.ink}" stroke-width=".8" stroke-opacity="${l ? 0.55 : 0.2}" transform="rotate(${rot.toFixed(1)} ${(x + 5.5).toFixed(1)} ${(y + 5.5).toFixed(1)})"/>${streakDates.has(d.date) ? `<circle cx="${(x + 5.5).toFixed(1)}" cy="${(y + 5.5).toFixed(1)}" r="1.8" fill="${N.rust}"/>` : ''}`; }
+  // empty grid always visible; the coloured cells are painted in behind the car each lap
+  let lit = '';
+  for (const d of days) { const [x, y] = pos[d.date], l = lvl(d.contributionCount), rot = ((Date.parse(d.date) / 864e5) % 7 - 3) * 1.2, tr = `transform="rotate(${rot.toFixed(1)} ${(x + 5.5).toFixed(1)} ${(y + 5.5).toFixed(1)})"`;
+    g += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="11" height="11" rx="2" fill="${N.paper}" stroke="${N.ink}" stroke-width=".8" stroke-opacity=".2" ${tr}/>`;
+    if (l || streakDates.has(d.date)) lit += `${l ? `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="11" height="11" rx="2" fill="${RA[l]}" stroke="${N.ink}" stroke-width=".8" stroke-opacity=".55" ${tr}/>` : ''}${streakDates.has(d.date) ? `<circle cx="${(x + 5.5).toFixed(1)}" cy="${(y + 5.5).toFixed(1)}" r="1.8" fill="${N.rust}"/>` : ''}`; }
   if (!days.length) g += T(450, 230, 'no contribution data yet', { z: 22, a: 'middle', c: N.mute });
   const has = !!bestDay?.contributionCount && !!pos[bestDay.date];
+  if (!has) g += lit;
   if (has) {
     // the car drives in along the best day's row, spins a donut around it, drives off, repeats
     const CARS = { red: { body: '#e1251b', shade: '#8f1209', hi: '#ff7a5c', stripe: '#f5f5f5', wing: '#2a0d0b' }, yellow: { body: '#ffc21a', shade: '#a87300', hi: '#fff0a8', stripe: '#141414', wing: '#3a2a00' } }, CAR = CARS[cfg.drift_car] || CARS.red;
     const [x0, y0] = pos[bestDay.date], bx = +(x0 + 5.5).toFixed(1), ly = +(y0 + 5.5).toFixed(1), R = 34, V = 200, spin = 2, B = LT + 1.2;
     const dir = bestDay.weekday <= 3 ? 1 : -1, cy = ly + dir * R, sw = dir > 0 ? 1 : 0;
     const t1 = (bx + 80) / V, t2 = t1 + spin, t3 = t2 + (W + 80 - bx) / V, D = +(t3 + 2.5).toFixed(2), kt = (s) => Math.min(1, s / D).toFixed(4), rep = `dur="${D}s" begin="${B}s" repeatCount="indefinite"`;
+    const gR = X0 + weeks.length * P, hold = t3 + 0.9, gone = t3 + 1.3, wAt = (x) => Math.max(0, Math.min(gR - X0 + 4, x - X0 + 4)).toFixed(1);
+    const tg0 = (X0 - 4 + 80) / V, tgR = t2 + (gR - bx) / V;
+    g += `<defs><clipPath id="rv"><rect x="${X0 - 4}" y="${Y0 - 30}" height="${7 * P + 40}" width="0"><animate attributeName="width" values="0;0;${wAt(bx + 14)};${wAt(bx + 14)};${wAt(gR)};${wAt(gR)};0;0" keyTimes="0;${kt(tg0)};${kt(t1)};${kt(t2)};${kt(tgR)};${kt(gone)};${kt(gone + 0.05)};1" ${rep}/></rect></clipPath></defs>`;
+    g += `<g clip-path="url(#rv)"><g>${lit}<ellipse cx="${bx}" cy="${ly}" rx="12" ry="10" fill="none" stroke="${N.red}" stroke-width="2"/>${T(x0 - 6, y0 - 10, 'FL', { z: 16, c: N.red })}<animate attributeName="opacity" values="1;1;0;0;1;1" keyTimes="0;${kt(hold)};${kt(gone)};${kt(gone + 0.05)};${kt(gone + 0.1)};1" ${rep}/></g></g>`;
     g += `<defs><filter id="sm" x="-1" y="-1" width="3" height="3"><feGaussianBlur stdDeviation="3"/></filter><linearGradient id="cb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${CAR.shade}"/><stop offset=".3" stop-color="${CAR.body}"/><stop offset=".5" stop-color="${CAR.hi}"/><stop offset=".7" stop-color="${CAR.body}"/><stop offset="1" stop-color="${CAR.shade}"/></linearGradient></defs>`;
-    const ring = (r) => `<path d="M${bx} ${(cy - dir * r).toFixed(1)} A${r} ${r} 0 1 ${sw} ${bx} ${(cy + dir * r).toFixed(1)} A${r} ${r} 0 1 ${sw} ${bx} ${(cy - dir * r).toFixed(1)}" pathLength="1" fill="none" stroke="${N.ink}" stroke-width="3" stroke-dasharray="1" stroke-dashoffset="1" opacity=".3"><animate attributeName="stroke-dashoffset" values="1;1;0;0;1" keyTimes="0;${kt(t1)};${kt(t2)};.96;1" ${rep}/><animate attributeName="opacity" values=".3;.3;0;0" keyTimes="0;.94;.96;1" ${rep}/></path>`;
+    const ring = (r) => `<path d="M${bx} ${(cy - dir * r).toFixed(1)} A${r} ${r} 0 1 ${sw} ${bx} ${(cy + dir * r).toFixed(1)} A${r} ${r} 0 1 ${sw} ${bx} ${(cy - dir * r).toFixed(1)}" pathLength="1" fill="none" stroke="${N.ink}" stroke-width="3" stroke-dasharray="1" stroke-dashoffset="1" opacity=".3"><animate attributeName="stroke-dashoffset" values="1;1;0;0;1;1" keyTimes="0;${kt(t1)};${kt(t2)};${kt(gone)};${kt(gone + 0.05)};1" ${rep}/><animate attributeName="opacity" values=".3;.3;0;0;.3;.3" keyTimes="0;${kt(hold)};${kt(gone)};${kt(gone + 0.05)};${kt(gone + 0.1)};1" ${rep}/></path>`;
     g += ring(R - 9) + ring(R + 9);
     const puff = (x, y, t) => { const p = t / D, k = `keyTimes="0;${p.toFixed(4)};${(p + 0.005).toFixed(4)};${(p + 0.14).toFixed(4)};1"`; return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5" fill="#a39a8e" opacity="0" filter="url(#sm)"><animate attributeName="opacity" values="0;0;.5;0;0" ${k} ${rep}/><animate attributeName="r" values="5;5;5;18;18" ${k} ${rep}/></circle>`; };
     for (let k = 0; k < 16; k++) { const s = k / 15, th = -dir * Math.PI / 2 + dir * 2 * Math.PI * Math.max(0, s - 0.03); g += puff(bx + (R + 7) * Math.cos(th), cy + (R + 7) * Math.sin(th), t1 + s * spin); }
@@ -264,10 +273,9 @@ function heatN() {
     const path = `M-80 ${ly} H${bx} A${R} ${R} 0 1 ${sw} ${bx} ${(ly + 2 * dir * R).toFixed(1)} A${R} ${R} 0 1 ${sw} ${bx} ${ly} H${W + 80}`;
     const yaw = `<animateTransform attributeName="transform" type="rotate" values="0;0;${dir * 40};${dir * 36};0;0" keyTimes="0;${kt(t1)};${kt(t1 + 0.3)};${kt(t2 - 0.3)};${kt(t2)};1" ${rep}/>`;
     g += `<g opacity="0"><set attributeName="opacity" to="1" begin="${B}s" fill="freeze"/><g><animateMotion path="${path}" ${rep} rotate="auto" keyPoints="0;${(L1 / Lt).toFixed(4)};${((L1 + L2) / Lt).toFixed(4)};1;1" keyTimes="0;${kt(t1)};${kt(t2)};${kt(t3)};1" calcMode="linear"/><g>${yaw}${car}</g></g></g>`;
-    g += `<ellipse cx="${bx}" cy="${ly}" rx="12" ry="10" fill="none" stroke="${N.red}" stroke-width="2"/>${T(x0 - 6, y0 - 10, 'FL', { z: 16, c: N.red })}`;
   }
   g += T(700, 326, 'less', { z: 14, c: N.mute, a: 'end' }) + RA.map((c, i) => `<rect x="${708 + i * 18}" y="314" width="13" height="13" rx="2" fill="${c}" stroke="${N.ink}" stroke-opacity=".5"/>`).join('') + T(802, 326, 'more', { z: 14, c: N.mute });
-  return svg(W, H, g, '.c{animation:f .3s ease-out backwards}@keyframes f{from{opacity:0}}');
+  return svg(W, H, g);
 }
 
 function ecgN() {
