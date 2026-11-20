@@ -194,7 +194,9 @@ const md = (d) => new Date(d).toLocaleString('en', { month: 'short', day: 'numer
 
 function heroN() {
   const W = 900, H = 416, now = new Date(), day = `${now.toLocaleString('en', { weekday: 'long', timeZone: 'Asia/Kolkata' })}, ${now.toLocaleString('en', { day: 'numeric', timeZone: 'Asia/Kolkata' })} ${now.toLocaleString('en', { month: 'short', timeZone: 'Asia/Kolkata' })}`;
-  let g = sheet(W, H) + `<circle cx="72" cy="52" r="17" fill="none" stroke="${N.ink}" stroke-width="2"/>${T(72, 59, cfg.name[0], { z: 20, a: 'middle' })}${T(98, 60, `${cfg.name.toLowerCase()}.`, { z: 30 })}`;
+  const av = path.join(root, cfg.avatar || 'images/avatar.jpg');
+  const face = fs.existsSync(av) ? `<defs><clipPath id="av"><circle cx="82" cy="54" r="27"/></clipPath></defs><image href="data:image/jpeg;base64,${fs.readFileSync(av).toString('base64')}" x="55" y="27" width="54" height="54" clip-path="url(#av)" preserveAspectRatio="xMidYMid slice"/><circle cx="82" cy="54" r="27" fill="none" stroke="${N.ink}" stroke-width="2.2"/>` : `<circle cx="82" cy="54" r="27" fill="none" stroke="${N.ink}" stroke-width="2"/>${T(82, 62, cfg.name[0], { z: 26, a: 'middle' })}`;
+  let g = sheet(W, H) + face + T(122, 64, `${cfg.name.toLowerCase()}.`, { z: 30 });
   g += T(58, 122, day, { z: 46 }) + T(66 + tw2(day, 46), 120, `${fmt(contribs)} contributions in the last year`, { z: 15, b: 1, c: N.mute });
   g += `<circle cx="850" cy="60" r="24" fill="${N.hl}" stroke="${N.ink}" stroke-width="2"/><path d="M836 75 q14 9 28 -5" fill="none" stroke="#e0c66e" stroke-width="5"/>`;
   g += paperBox(58, 150, 560, 210, N.card, -0.6) + tape(90, 140, 70, -6, TABC[1]) + T(80, 190, 'Dear diary,', { z: 24 });
@@ -409,14 +411,14 @@ async function chessN() {
 const contactN = (label, i) => svg(214, 92, `<defs>${FILT}</defs><g transform="rotate(${i % 2 ? 2 : -2} 107 48)">${paperBox(8, 14, 196, 66, TABC[i % 5])}${tape(77, 6, 60, i % 2 ? 4 : -4, '#ffffff')}${T(28, 56, label, { z: 26 })}${arrowN(164, 36, 16)}</g>`);
 
 // ---------- write ----------
-write('hero.svg', heroN()); write('top.svg', topSvg()); write('about.svg', aboutN()); write('stats.svg', statsN()); write('heatmap.svg', heatN()); write('flight.svg', flightN());
+write('hero.svg', heroN()); write('top.svg', topSvg()); write('stats.svg', statsN()); write('heatmap.svg', heatN()); write('flight.svg', flightN());
 const sk = Object.keys(stack); sk.forEach((k, i) => write(`stack-${i}.svg`, stackN(k, stack[k], i))); const langs = langsN(); if (langs) write('langs.svg', langs);
 write('oss.svg', cityN()); projs.forEach((p, i) => write(`proj-${i}.svg`, projN(p, projs))); write('btn-source.svg', pbtnN('source', false)); write('btn-live.svg', pbtnN('live', true)); write('btn-none.svg', svg(214, 60, '')); write('proj-note.svg', noteN());
 if (lcData) write('lc.svg', lcN(lcData)); if (cfData) write('cf.svg', cfN(cfData)); write('chess.svg', await chessN());
 const hasMail = cfg.email && !cfg.email.includes('CHANGE_ME'), contacts = [...(hasMail ? [['email', `mailto:${cfg.email}`]] : []), ['linkedin', cfg.linkedin], ['x', cfg.x], ['github', `https://github.com/${USER}`]].filter(([, u]) => u);
 contacts.forEach(([l], i) => write(`contact-${i}.svg`, contactN(l, i)));
 const hasCP = !!(cfData || lcData), nTools = sk.reduce((a, k) => a + stack[k].length, 0);
-const SECTIONS = [['about', 'About', 'who'], ['activity', 'Activity', 'live from github'], ['stack', 'Stack', `${nTools} tools`], ['open-source', 'Open source', `${totals.merged} merged`], ['projects', 'Projects', `${projs.length} picks`], ...(hasCP ? [['problem-solving', 'Problem solving', [lcData && 'leetcode', cfData && 'codeforces'].filter(Boolean).join(' & ')]] : []), ['chess', 'Chess', 'for fun'], ['contact', 'Contact', 'say hi']];
+const SECTIONS = [['activity', 'Activity', 'live from github'], ['stack', 'Stack', `${nTools} tools`], ['open-source', 'Open source', `${totals.merged} merged`], ['projects', 'Projects', `${projs.length} picks`], ...(hasCP ? [['problem-solving', 'Problem solving', [lcData && 'leetcode', cfData && 'codeforces'].filter(Boolean).join(' & ')]] : []), ['chess', 'Chess', 'for fun'], ['contact', 'Contact', 'say hi']];
 const tabW = {}, hdrW = {}; SECTIONS.forEach(([k, ti, no], i) => { const [w, s] = tabSvg(ti, i); tabW[k] = w; write(`tab-${k}.svg`, s); const [w2, s2] = hdrSvg(ti, no, i); hdrW[k] = w2; write(`hdr-${k}.svg`, s2); });
 
 const V = crypto.createHash('md5').update(fs.readdirSync(OA).filter((f) => f.endsWith('.svg')).sort().map((f) => fs.readFileSync(path.join(OA, f), 'utf8')).join('')).digest('hex').slice(0, 8);
@@ -424,7 +426,6 @@ const im = (f, alt, w = '100%', h) => `<img src="assets/${f}?v=${V}"${w ? ` widt
 const totTab = SECTIONS.reduce((a, [k]) => a + tabW[k] + 6, 0), navRow = SECTIONS.map(([k, ti]) => lk(`#${k}`, im(`tab-${k}.svg`, ti, `${((tabW[k] + 6) / totTab * 97).toFixed(1)}%`))).join('');
 const backTop = lk('#top', im('top.svg', 'back to top', '150'));
 const body = {
-  about: im('about.svg', 'About me'),
   activity: `${im('stats.svg', 'GitHub stats')}\n${lk(`https://github.com/${USER}`, im('heatmap.svg', 'Contribution heatmap'))}\n${lk(`https://github.com/${USER}`, im('flight.svg', 'Monthly contributions as a flying car route'))}`,
   stack: sk.map((k, i) => im(`stack-${i}.svg`, k)).join('\n') + (langs ? `\n${im('langs.svg', 'Languages')}` : ''),
   'open-source': lk(`https://github.com/pulls?q=is%3Apr+author%3A${USER}+is%3Amerged`, im('oss.svg', 'Merged pull requests as a city street')),
