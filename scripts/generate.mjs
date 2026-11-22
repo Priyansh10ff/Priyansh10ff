@@ -413,12 +413,12 @@ const contactN = (label, i) => svg(214, 92, `<defs>${FILT}</defs><g transform="r
 // ---------- write ----------
 write('hero.svg', heroN()); write('top.svg', topSvg()); write('stats.svg', statsN()); write('heatmap.svg', heatN()); write('flight.svg', flightN());
 const sk = Object.keys(stack); sk.forEach((k, i) => write(`stack-${i}.svg`, stackN(k, stack[k], i))); const langs = langsN(); if (langs) write('langs.svg', langs);
-write('oss.svg', cityN()); projs.forEach((p, i) => write(`proj-${i}.svg`, projN(p, projs))); write('btn-source.svg', pbtnN('source', false)); write('btn-live.svg', pbtnN('live', true)); write('btn-none.svg', svg(214, 60, '')); write('proj-note.svg', noteN());
+write('oss.svg', cityN());
 if (lcData) write('lc.svg', lcN(lcData)); if (cfData) write('cf.svg', cfN(cfData)); write('chess.svg', await chessN());
 const hasMail = cfg.email && !cfg.email.includes('CHANGE_ME'), contacts = [...(hasMail ? [['email', `mailto:${cfg.email}`]] : []), ['linkedin', cfg.linkedin], ['x', cfg.x], ['github', `https://github.com/${USER}`]].filter(([, u]) => u);
 contacts.forEach(([l], i) => write(`contact-${i}.svg`, contactN(l, i)));
 const hasCP = !!(cfData || lcData), nTools = sk.reduce((a, k) => a + stack[k].length, 0);
-const SECTIONS = [['activity', 'Activity', 'live from github'], ['stack', 'Stack', `${nTools} tools`], ['open-source', 'Open source', `${totals.merged} merged`], ['projects', 'Projects', `${projs.length} picks`], ...(hasCP ? [['problem-solving', 'Problem solving', [lcData && 'leetcode', cfData && 'codeforces'].filter(Boolean).join(' & ')]] : []), ['chess', 'Chess', 'for fun'], ['contact', 'Contact', 'say hi']];
+const SECTIONS = [['activity', 'Activity', 'live from github'], ['stack', 'Stack', `${nTools} tools`], ['open-source', 'Open source', `${totals.merged} merged`], ...(hasCP ? [['problem-solving', 'Problem solving', [lcData && 'leetcode', cfData && 'codeforces'].filter(Boolean).join(' & ')]] : []), ['chess', 'Chess', 'for fun'], ['contact', 'Contact', 'say hi']];
 const tabW = {}, hdrW = {}; SECTIONS.forEach(([k, ti, no], i) => { const [w, s] = tabSvg(ti, i); tabW[k] = w; write(`tab-${k}.svg`, s); const [w2, s2] = hdrSvg(ti, no, i); hdrW[k] = w2; write(`hdr-${k}.svg`, s2); });
 
 const V = crypto.createHash('md5').update(fs.readdirSync(OA).filter((f) => f.endsWith('.svg')).sort().map((f) => fs.readFileSync(path.join(OA, f), 'utf8')).join('')).digest('hex').slice(0, 8);
@@ -429,7 +429,6 @@ const body = {
   activity: `${im('stats.svg', 'GitHub stats')}\n${lk(`https://github.com/${USER}`, im('heatmap.svg', 'Contribution heatmap'))}\n${lk(`https://github.com/${USER}`, im('flight.svg', 'Monthly contributions as a flying car route'))}`,
   stack: sk.map((k, i) => im(`stack-${i}.svg`, k)).join('\n') + (langs ? `\n${im('langs.svg', 'Languages')}` : ''),
   'open-source': lk(`https://github.com/pulls?q=is%3Apr+author%3A${USER}+is%3Amerged`, im('oss.svg', 'Merged pull requests as a city street')),
-  projects: (() => { const r = []; for (let i = 0; i < projs.length; i += 2) { const pr = projs.slice(i, i + 2); r.push(pr.map((p, k) => lk(p.url || (p.repo ? `https://github.com/${p.repo}` : ''), im(`proj-${i + k}.svg`, p.name, '49%'))).join(' ')); r.push(pr.map((p) => [p.repo ? lk(`https://github.com/${p.repo}`, im('btn-source.svg', `${p.name} source`, '24%')) : im('btn-none.svg', '', '24%'), p.url ? lk(p.url, im('btn-live.svg', `${p.name} live site`, '24%')) : im('btn-none.svg', '', '24%')].join(' ')).join(' ')); } return r.join('<br>\n') + '<br>\n' + im('proj-note.svg', 'A few projects are still in development, so their live links may not work yet.'); })(),
   'problem-solving': [lcData && lk(`https://leetcode.com/u/${lcData.user}/`, im('lc.svg', 'LeetCode stats')), cfData && lk(`https://codeforces.com/profile/${cfData.handle}`, im('cf.svg', 'Codeforces stats'))].filter(Boolean).join('\n'),
   chess: lk(`https://www.chess.com/member/${CHESS}`, im('chess.svg', 'Chess.com stats')),
   contact: contacts.map(([l, u], i) => lk(u, im(`contact-${i}.svg`, l, contacts.length === 4 ? '23.4%' : '31.5%'))).join(' '),
